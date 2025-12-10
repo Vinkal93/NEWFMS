@@ -1,0 +1,2044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Fee Management System</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar-link.active { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+        .card-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-gradient-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .card-gradient-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .card-gradient-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .card-gradient-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .card-gradient-6 { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .modal { transition: opacity 0.3s ease; }
+        .login-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        
+        .sidebar { transition: all 0.3s ease; }
+        .sidebar.collapsed { width: 80px; }
+        .sidebar.collapsed .sidebar-text { display: none; }
+        .sidebar.collapsed .sidebar-link { justify-content: center; }
+        .sidebar.collapsed .sidebar-link i { margin: 0; font-size: 1.25rem; }
+        .sidebar.collapsed .logo-text { display: none; }
+        
+        .main-content { transition: margin-left 0.3s ease; }
+        .main-content.expanded { margin-left: 80px; }
+        
+        .mobile-overlay { background: rgba(0,0,0,0.5); transition: opacity 0.3s ease; }
+        
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); z-index: 50; }
+            .sidebar.mobile-open { transform: translateX(0); }
+            .main-content { margin-left: 0 !important; }
+        }
+        
+        .student-row { animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .chart-container { position: relative; height: 250px; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    
+    <!-- Login Page -->
+    <div id="loginPage" class="login-bg min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-graduation-cap text-indigo-600 text-3xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800">Fee Management System</h1>
+                <p class="text-gray-500">Login to continue</p>
+            </div>
+            
+            <!-- Login Type Toggle -->
+            <div class="flex bg-gray-100 rounded-lg p-1 mb-6">
+                <button onclick="setLoginType('admin')" id="adminTab" class="flex-1 py-2 rounded-lg text-sm font-medium transition bg-indigo-600 text-white">
+                    <i class="fas fa-user-shield mr-2"></i>Admin
+                </button>
+                <button onclick="setLoginType('student')" id="studentTab" class="flex-1 py-2 rounded-lg text-sm font-medium transition text-gray-600">
+                    <i class="fas fa-user-graduate mr-2"></i>Student
+                </button>
+            </div>
+            
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <span id="loginIdLabel">Admin ID</span>
+                        </label>
+                        <div class="relative">
+                            <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="loginId" required placeholder="Enter your ID" 
+                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <div class="relative">
+                            <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="password" id="loginPassword" required placeholder="Enter password" 
+                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="w-full mt-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Login
+                </button>
+            </form>
+            
+            <div id="loginError" class="hidden mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm text-center"></div>
+            
+            <div class="mt-6 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
+                <p class="font-medium mb-2">Demo Credentials:</p>
+                <p><strong>Admin:</strong> admin / admin123</p>
+                <p><strong>Student:</strong> Use Student ID & Phone</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="mainApp" class="hidden">
+        <div class="flex min-h-screen">
+            <!-- Mobile Overlay -->
+            <div id="mobileOverlay" class="mobile-overlay fixed inset-0 hidden z-40 md:hidden" onclick="toggleMobileMenu()"></div>
+            
+            <!-- Mobile Header -->
+            <div class="fixed top-0 left-0 right-0 bg-gray-900 text-white p-4 flex items-center justify-between md:hidden z-30">
+                <h1 class="text-xl font-bold flex items-center gap-2">
+                    <i class="fas fa-graduation-cap text-indigo-400"></i>
+                    <span id="mobileTitle">FeeManager</span>
+                </h1>
+                <div class="flex items-center gap-3">
+                    <button onclick="logout()" class="text-red-400 hover:text-red-300">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                    <button onclick="toggleMobileMenu()" class="text-2xl">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Admin Sidebar -->
+            <aside id="adminSidebar" class="sidebar w-64 bg-gray-900 text-white fixed h-full overflow-y-auto flex flex-col">
+                <div class="p-6 border-b border-gray-700">
+                    <h1 class="text-2xl font-bold flex items-center gap-2">
+                        <i class="fas fa-graduation-cap text-indigo-400"></i>
+                        <span class="logo-text">FeeManager</span>
+                    </h1>
+                    <p class="text-xs text-gray-400 mt-1 logo-text">Admin Panel</p>
+                </div>
+                <nav class="p-4 space-y-2 flex-1">
+                    <a href="#" onclick="showSection('dashboard')" class="sidebar-link active flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                        <i class="fas fa-chart-pie"></i> <span class="sidebar-text">Dashboard</span>
+                    </a>
+                    <a href="#" onclick="showSection('students')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                        <i class="fas fa-users"></i> <span class="sidebar-text">Students</span>
+                    </a>
+                    <a href="#" onclick="showSection('batches')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                        <i class="fas fa-layer-group"></i> <span class="sidebar-text">Batches</span>
+                    </a>
+                    <a href="#" onclick="showSection('courses')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                        <i class="fas fa-book"></i> <span class="sidebar-text">Courses</span>
+                    </a>
+                    <a href="#" onclick="showSection('fees')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                        <i class="fas fa-indian-rupee-sign"></i> <span class="sidebar-text">Fee Management</span>
+                    </a>
+                    <a href="#" onclick="showSection('payments')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                        <i class="fas fa-receipt"></i> <span class="sidebar-text">Payment History</span>
+                    </a>
+                    <a href="#" onclick="showSection('analytics')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                        <i class="fas fa-chart-bar"></i> <span class="sidebar-text">Analytics</span>
+                    </a>
+                    <a href="#" onclick="showSection('settings')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                        <i class="fas fa-cog"></i> <span class="sidebar-text">Settings</span>
+                    </a>
+                </nav>
+                <div class="p-4 border-t border-gray-700">
+                    <button onclick="logout()" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 rounded-lg hover:bg-red-700 transition mb-2">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span class="sidebar-text">Logout</span>
+                    </button>
+                    <button onclick="toggleSidebar()" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition hidden md:flex">
+                        <i id="collapseIcon" class="fas fa-chevron-left"></i>
+                        <span class="sidebar-text">Collapse</span>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Student Sidebar -->
+            <aside id="studentSidebar" class="sidebar w-64 bg-gray-900 text-white fixed h-full overflow-y-auto flex flex-col hidden">
+                <div class="p-6 border-b border-gray-700">
+                    <h1 class="text-2xl font-bold flex items-center gap-2">
+                        <i class="fas fa-graduation-cap text-indigo-400"></i>
+                        <span class="logo-text">My Portal</span>
+                    </h1>
+                    <p class="text-xs text-gray-400 mt-1 logo-text" id="studentWelcome">Welcome, Student</p>
+                </div>
+                <nav class="p-4 space-y-2 flex-1">
+                    <a href="#" onclick="showStudentSection('studentDashboard')" class="sidebar-link active flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                        <i class="fas fa-home"></i> <span class="sidebar-text">Dashboard</span>
+                    </a>
+                    <a href="#" onclick="showStudentSection('studentFees')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                        <i class="fas fa-indian-rupee-sign"></i> <span class="sidebar-text">My Fees</span>
+                    </a>
+                    <a href="#" onclick="showStudentSection('studentPayments')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                        <i class="fas fa-receipt"></i> <span class="sidebar-text">Payment History</span>
+                    </a>
+                    <a href="#" onclick="showStudentSection('studentPayNow')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                        <i class="fas fa-credit-card"></i> <span class="sidebar-text">Pay Now</span>
+                    </a>
+                </nav>
+                <div class="p-4 border-t border-gray-700">
+                    <button onclick="logout()" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 rounded-lg hover:bg-red-700 transition">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span class="sidebar-text">Logout</span>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main id="mainContent" class="main-content flex-1 ml-0 md:ml-64 p-4 md:p-8 mt-16 md:mt-0">
+                
+                <!-- ============ ADMIN SECTIONS ============ -->
+                
+                <!-- Dashboard Section -->
+                <section id="dashboard" class="section">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Dashboard Overview</h2>
+                    
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+                        <div class="card-gradient rounded-xl p-4 md:p-6 text-white shadow-lg">
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+                                <div>
+                                    <p class="text-xs md:text-sm opacity-80">Total Students</p>
+                                    <p id="totalStudents" class="text-2xl md:text-3xl font-bold mt-1">0</p>
+                                </div>
+                                <i class="fas fa-users text-2xl md:text-4xl opacity-50 hidden md:block"></i>
+                            </div>
+                        </div>
+                        <div class="card-gradient-2 rounded-xl p-4 md:p-6 text-white shadow-lg">
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+                                <div>
+                                    <p class="text-xs md:text-sm opacity-80">Total Batches</p>
+                                    <p id="totalBatches" class="text-2xl md:text-3xl font-bold mt-1">0</p>
+                                </div>
+                                <i class="fas fa-layer-group text-2xl md:text-4xl opacity-50 hidden md:block"></i>
+                            </div>
+                        </div>
+                        <div class="card-gradient-3 rounded-xl p-4 md:p-6 text-white shadow-lg">
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+                                <div>
+                                    <p class="text-xs md:text-sm opacity-80">Total Collected</p>
+                                    <p id="totalCollected" class="text-xl md:text-3xl font-bold mt-1">₹0</p>
+                                </div>
+                                <i class="fas fa-indian-rupee-sign text-2xl md:text-4xl opacity-50 hidden md:block"></i>
+                            </div>
+                        </div>
+                        <div class="card-gradient-4 rounded-xl p-4 md:p-6 text-white shadow-lg">
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+                                <div>
+                                    <p class="text-xs md:text-sm opacity-80">Pending Fees</p>
+                                    <p id="pendingFees" class="text-xl md:text-3xl font-bold mt-1">₹0</p>
+                                </div>
+                                <i class="fas fa-clock text-2xl md:text-4xl opacity-50 hidden md:block"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row 1 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                            <h3 class="text-lg font-semibold mb-4">Monthly Fee Collection</h3>
+                            <div class="chart-container"><canvas id="monthlyChart"></canvas></div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                            <h3 class="text-lg font-semibold mb-4">Fee Status Distribution</h3>
+                            <div class="chart-container"><canvas id="statusChart"></canvas></div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row 2 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                            <h3 class="text-lg font-semibold mb-4">Course-wise Enrollment</h3>
+                            <div class="chart-container"><canvas id="courseChart"></canvas></div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                            <h3 class="text-lg font-semibold mb-4">Recent Payments</h3>
+                            <div id="recentPayments" class="space-y-3 max-h-64 overflow-y-auto">
+                                <p class="text-gray-500 text-center py-4">No payments yet</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Students Section -->
+                <section id="students" class="section hidden">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-800">Students Management</h2>
+                        <div class="flex gap-3 flex-wrap">
+                            <button onclick="exportStudentsToExcel()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2 text-sm md:text-base">
+                                <i class="fas fa-file-excel"></i> <span class="hidden sm:inline">Export</span>
+                            </button>
+                            <button onclick="openModal('bulkStudentModal')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2 text-sm md:text-base">
+                                <i class="fas fa-users-plus"></i> <span class="hidden sm:inline">Add Students</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-indigo-500">
+                            <p class="text-sm text-gray-500">Total Students</p>
+                            <p id="studentsCount" class="text-2xl font-bold text-gray-800">0</p>
+                        </div>
+                        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-green-500">
+                            <p class="text-sm text-gray-500">Total Collected</p>
+                            <p id="studentsTotalCollected" class="text-2xl font-bold text-green-600">₹0</p>
+                        </div>
+                        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-red-500">
+                            <p class="text-sm text-gray-500">Total Pending</p>
+                            <p id="studentsTotalPending" class="text-2xl font-bold text-red-600">₹0</p>
+                        </div>
+                    </div>
+
+                    <!-- Search & Filter -->
+                    <div class="bg-white rounded-xl shadow p-4 mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <input type="text" id="searchStudent" placeholder="Search by name or phone..." onkeyup="filterStudents()" class="px-4 py-2 border rounded-lg">
+                            <select id="filterBatch" onchange="filterStudents()" class="px-4 py-2 border rounded-lg">
+                                <option value="">All Batches</option>
+                            </select>
+                            <select id="filterCourse" onchange="filterStudents()" class="px-4 py-2 border rounded-lg">
+                                <option value="">All Courses</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="studentsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                </section>
+
+                <!-- Batches Section -->
+                <section id="batches" class="section hidden">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-800">Batch Management</h2>
+                        <button onclick="openModal('batchModal')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2">
+                            <i class="fas fa-plus"></i> Add Batch
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="batchesGrid"></div>
+                </section>
+
+                <!-- Courses Section -->
+                <section id="courses" class="section hidden">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-800">Courses Management</h2>
+                        <div class="flex gap-3">
+                            <button onclick="exportCoursesToExcel()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2">
+                                <i class="fas fa-file-excel"></i> <span class="hidden sm:inline">Export</span>
+                            </button>
+                            <button onclick="openModal('courseModal')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2">
+                                <i class="fas fa-plus"></i> Add Course
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="coursesGrid"></div>
+                </section>
+
+                <!-- Fee Management Section -->
+                <section id="fees" class="section hidden">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-800">Fee Management</h2>
+                        <div class="flex gap-3">
+                            <button onclick="exportFeesToExcel()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2">
+                                <i class="fas fa-file-excel"></i> <span class="hidden sm:inline">Export</span>
+                            </button>
+                            <button onclick="openModal('paymentModal')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2">
+                                <i class="fas fa-plus"></i> Record Payment
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-blue-500">
+                            <p class="text-sm text-gray-500">Total Expected</p>
+                            <p id="feeTotalExpected" class="text-2xl font-bold text-blue-600">₹0</p>
+                        </div>
+                        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-green-500">
+                            <p class="text-sm text-gray-500">Total Collected</p>
+                            <p id="feeTotalCollected" class="text-2xl font-bold text-green-600">₹0</p>
+                        </div>
+                        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-red-500">
+                            <p class="text-sm text-gray-500">Total Pending</p>
+                            <p id="feeTotalPending" class="text-2xl font-bold text-red-600">₹0</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg overflow-x-auto">
+                        <table class="w-full min-w-[600px]">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-4 text-left text-sm font-semibold text-gray-600">Student</th>
+                                    <th class="px-4 py-4 text-left text-sm font-semibold text-gray-600">Batch</th>
+                                    <th class="px-4 py-4 text-left text-sm font-semibold text-gray-600">Course</th>
+                                    <th class="px-4 py-4 text-left text-sm font-semibold text-gray-600">Total</th>
+                                    <th class="px-4 py-4 text-left text-sm font-semibold text-gray-600">Paid</th>
+                                    <th class="px-4 py-4 text-left text-sm font-semibold text-gray-600">Pending</th>
+                                    <th class="px-4 py-4 text-left text-sm font-semibold text-gray-600">Status</th>
+                                    <th class="px-4 py-4 text-left text-sm font-semibold text-gray-600">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="feesTable" class="divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Payment History Section -->
+                <section id="payments" class="section hidden">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-800">Payment History</h2>
+                        <button onclick="exportFilteredPaymentsToExcel()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2">
+                            <i class="fas fa-file-excel"></i> Export Filtered
+                        </button>
+                    </div>
+                    
+                    <!-- Filters -->
+                    <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800"><i class="fas fa-filter mr-2 text-indigo-600"></i>Filters</h3>
+                            <button onclick="clearFilters()" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                                <i class="fas fa-times-circle mr-1"></i>Clear All
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Date From</label>
+                                <input type="date" id="filterDateFrom" onchange="applyFilters()" class="w-full px-3 py-2 border rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Date To</label>
+                                <input type="date" id="filterDateTo" onchange="applyFilters()" class="w-full px-3 py-2 border rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                                <select id="filterMethod" onchange="applyFilters()" class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">All Methods</option>
+                                    <option value="Cash">Cash</option>
+                                    <option value="UPI">UPI</option>
+                                    <option value="Card">Card</option>
+                                    <option value="Bank Transfer">Bank Transfer</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Student</label>
+                                <select id="filterStudent" onchange="applyFilters()" class="w-full px-3 py-2 border rounded-lg">
+                                    <option value="">All Students</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mt-4">
+                            <button onclick="setQuickFilter('today')" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-indigo-100 hover:text-indigo-700 transition">Today</button>
+                            <button onclick="setQuickFilter('week')" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-indigo-100 hover:text-indigo-700 transition">This Week</button>
+                            <button onclick="setQuickFilter('month')" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-indigo-100 hover:text-indigo-700 transition">This Month</button>
+                            <button onclick="setQuickFilter('year')" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-indigo-100 hover:text-indigo-700 transition">This Year</button>
+                            <button onclick="setQuickFilter('all')" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-indigo-100 hover:text-indigo-700 transition">All Time</button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-indigo-500">
+                            <p class="text-sm text-gray-500">Transactions</p>
+                            <p id="filteredPaymentCount" class="text-2xl font-bold text-gray-800">0</p>
+                        </div>
+                        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-green-500">
+                            <p class="text-sm text-gray-500">Collection</p>
+                            <p id="filteredPaymentTotal" class="text-2xl font-bold text-green-600">₹0</p>
+                        </div>
+                        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-purple-500">
+                            <p class="text-sm text-gray-500">Average</p>
+                            <p id="filteredPaymentAvg" class="text-2xl font-bold text-purple-600">₹0</p>
+                        </div>
+                        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-orange-500">
+                            <p class="text-sm text-gray-500">Max</p>
+                            <p id="filteredPaymentMax" class="text-2xl font-bold text-orange-600">₹0</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg overflow-x-auto">
+                        <table class="w-full min-w-[500px]">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-4 text-left text-sm font-semibold text-gray-600">Receipt #</th>
+                                    <th class="px-4 py-4 text-left text-sm font-semibold text-gray-600">Date</th>
+                                    <th class="px-4 py-4 text-left text-sm font-semibold text-gray-600">Student</th>
+                                    <th class="px-4 py-4 text-left text-sm font-semibold text-gray-600">Amount</th>
+                                    <th class="px-4 py-4 text-left text-sm font-semibold text-gray-600">Method</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentsTable" class="divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Analytics Section -->
+                <section id="analytics" class="section hidden">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Analytics & Reports</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                            <h3 class="text-lg font-semibold mb-4">Course-wise Fee Collection</h3>
+                            <div class="chart-container"><canvas id="courseCollectionChart"></canvas></div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                            <h3 class="text-lg font-semibold mb-4">Payment Mode Distribution</h3>
+                            <div class="chart-container"><canvas id="paymentModeChart"></canvas></div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                            <h3 class="text-lg font-semibold mb-4">Month-wise Admissions</h3>
+                            <div class="chart-container"><canvas id="admissionChart"></canvas></div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                            <h3 class="text-lg font-semibold mb-4">Student Growth Trend</h3>
+                            <div class="chart-container"><canvas id="growthChart"></canvas></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Settings Section -->
+                <section id="settings" class="section hidden">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Settings</h2>
+                    
+                    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                        <h3 class="text-lg font-semibold mb-4"><i class="fas fa-cloud text-indigo-600 mr-2"></i>Google Sheets Sync</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Google Apps Script Web App URL</label>
+                                <input type="text" id="googleSheetUrl" placeholder="https://script.google.com/macros/s/..." class="w-full px-4 py-2 border rounded-lg">
+                            </div>
+                            <button onclick="syncToGoogleSheets()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                                <i class="fas fa-sync mr-2"></i>Sync Now
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4"><i class="fas fa-database text-red-600 mr-2"></i>Data Management</h3>
+                        <div class="flex gap-4 flex-wrap">
+                            <button onclick="exportAllData()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                                <i class="fas fa-download mr-2"></i>Export All Data
+                            </button>
+                            <button onclick="clearAllData()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                                <i class="fas fa-trash mr-2"></i>Clear All Data
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ STUDENT SECTIONS ============ -->
+                
+                <!-- Student Dashboard -->
+                <section id="studentDashboard" class="section hidden">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Welcome, <span id="studentNameDisplay"></span></h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="card-gradient rounded-xl p-6 text-white shadow-lg">
+                            <p class="text-sm opacity-80">Total Fee</p>
+                            <p id="myTotalFee" class="text-3xl font-bold mt-1">₹0</p>
+                        </div>
+                        <div class="card-gradient-4 rounded-xl p-6 text-white shadow-lg">
+                            <p class="text-sm opacity-80">Paid Amount</p>
+                            <p id="myPaidAmount" class="text-3xl font-bold mt-1">₹0</p>
+                        </div>
+                        <div class="card-gradient-2 rounded-xl p-6 text-white shadow-lg">
+                            <p class="text-sm opacity-80">Pending Amount</p>
+                            <p id="myPendingAmount" class="text-3xl font-bold mt-1">₹0</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">Course Details</h3>
+                            <div id="myCourseDetails" class="space-y-3"></div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">Recent Payments</h3>
+                            <div id="myRecentPayments" class="space-y-3 max-h-64 overflow-y-auto"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Student Fees -->
+                <section id="studentFees" class="section hidden">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">My Fee Details</h2>
+                    <div id="myFeeBreakdown" class="bg-white rounded-xl shadow-lg p-6"></div>
+                </section>
+
+                <!-- Student Payment History -->
+                <section id="studentPayments" class="section hidden">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">My Payment History</h2>
+                    <div class="bg-white rounded-xl shadow-lg overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">Receipt #</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">Date</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">Amount</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">Method</th>
+                                </tr>
+                            </thead>
+                            <tbody id="myPaymentsTable" class="divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Student Pay Now -->
+                <section id="studentPayNow" class="section hidden">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Pay Fee Online</h2>
+                    
+                    <div class="max-w-lg mx-auto">
+                        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                            <div class="text-center mb-6">
+                                <p class="text-gray-500">Pending Amount</p>
+                                <p id="payNowPending" class="text-4xl font-bold text-red-600">₹0</p>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount to Pay (₹)</label>
+                                    <input type="number" id="onlinePaymentAmount" class="w-full px-4 py-3 border rounded-lg text-lg">
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-4">
+                                    <button onclick="payWithUPI()" class="py-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition flex items-center justify-center gap-2">
+                                        <i class="fas fa-mobile-alt text-xl"></i>
+                                        <span>Pay with UPI</span>
+                                    </button>
+                                    <button onclick="payWithRazorpay()" class="py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                                        <i class="fas fa-credit-card text-xl"></i>
+                                        <span>Razorpay</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <p class="text-sm text-yellow-800"><i class="fas fa-info-circle mr-2"></i>Online payments will be verified and updated within 24 hours. For instant confirmation, please contact admin.</p>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- ============ MODALS ============ -->
+    
+    <!-- Bulk Student Modal -->
+    <div id="bulkStudentModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl p-6 md:p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">Add Multiple Students</h3>
+                <button onclick="closeModal('bulkStudentModal')" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-indigo-50 rounded-lg">
+                <div>
+                    <label class="block text-sm font-medium text-indigo-700 mb-2">Select Course</label>
+                    <select id="bulkCourse" class="w-full px-4 py-2 border rounded-lg">
+                        <option value="">Select Course</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-indigo-700 mb-2">Select Batch</label>
+                    <select id="bulkBatch" class="w-full px-4 py-2 border rounded-lg">
+                        <option value="">Select Batch</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="studentEntriesContainer" class="space-y-4"></div>
+            
+            <button onclick="addStudentRow()" class="mt-4 w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-indigo-500 hover:text-indigo-500 transition flex items-center justify-center gap-2">
+                <i class="fas fa-plus"></i> Add Another Student
+            </button>
+            
+            <div class="flex gap-3 mt-6">
+                <button type="button" onclick="closeModal('bulkStudentModal')" class="flex-1 px-4 py-3 border rounded-lg hover:bg-gray-50 transition">Cancel</button>
+                <button onclick="saveAllStudents()" class="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium">
+                    <i class="fas fa-save mr-2"></i>Save All Students
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Edit Modal -->
+    <div id="studentModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl p-6 md:p-8 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h3 class="text-2xl font-bold mb-6">Edit Student</h3>
+            <form id="studentForm" onsubmit="saveStudent(event)">
+                <input type="hidden" id="studentId">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                        <input type="text" id="studentName" required class="w-full px-4 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="studentEmail" class="w-full px-4 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone (Login Password)</label>
+                        <input type="tel" id="studentPhone" required class="w-full px-4 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Course</label>
+                        <select id="studentCourse" required class="w-full px-4 py-2 border rounded-lg"></select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Batch</label>
+                        <select id="studentBatch" required class="w-full px-4 py-2 border rounded-lg"></select>
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="closeModal('studentModal')" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition">Cancel</button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Course Modal -->
+    <div id="courseModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl p-6 md:p-8 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h3 class="text-2xl font-bold mb-6">Add/Edit Course</h3>
+            <form id="courseForm" onsubmit="saveCourse(event)">
+                <input type="hidden" id="courseId">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Course Name</label>
+                        <input type="text" id="courseName" required class="w-full px-4 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Duration (months)</label>
+                        <input type="number" id="courseDuration" required class="w-full px-4 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Course Fee (₹)</label>
+                        <input type="number" id="courseFee" required class="w-full px-4 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Registration Fee (₹)</label>
+                        <input type="number" id="courseRegFee" value="0" class="w-full px-4 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <textarea id="courseDescription" rows="3" class="w-full px-4 py-2 border rounded-lg"></textarea>
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="closeModal('courseModal')" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition">Cancel</button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Batch Modal -->
+    <div id="batchModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl p-6 md:p-8 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h3 class="text-2xl font-bold mb-6">Add/Edit Batch</h3>
+            <form id="batchForm" onsubmit="saveBatch(event)">
+                <input type="hidden" id="batchId">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Batch Name</label>
+                        <input type="text" id="batchName" required placeholder="e.g., January 2024 Batch" class="w-full px-4 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                        <input type="date" id="batchStartDate" required class="w-full px-4 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Course</label>
+                        <select id="batchCourse" required class="w-full px-4 py-2 border rounded-lg"></select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Timing</label>
+                        <input type="text" id="batchTiming" placeholder="e.g., 10:00 AM - 12:00 PM" class="w-full px-4 py-2 border rounded-lg">
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="closeModal('batchModal')" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition">Cancel</button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl p-6 md:p-8 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h3 class="text-2xl font-bold mb-6">Record Payment</h3>
+            <form id="paymentForm" onsubmit="savePayment(event)">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Student</label>
+                        <select id="paymentStudent" required onchange="showPendingAmount()" class="w-full px-4 py-2 border rounded-lg"></select>
+                    </div>
+                    <div id="pendingInfo" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                        <p class="text-sm text-yellow-800">Pending: <span id="pendingAmount" class="font-bold">₹0</span></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount (₹)</label>
+                        <input type="number" id="paymentAmount" required class="w-full px-4 py-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                        <select id="paymentMethod" required class="w-full px-4 py-2 border rounded-lg">
+                            <option value="Cash">Cash</option>
+                            <option value="UPI">UPI</option>
+                            <option value="Card">Card</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                        <input type="date" id="paymentDate" required class="w-full px-4 py-2 border rounded-lg">
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="closeModal('paymentModal')" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition">Cancel</button>
+                    <button type="submit" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Student Details Modal -->
+    <div id="studentDetailsModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl p-6 md:p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">Student Details</h3>
+                <button onclick="closeModal('studentDetailsModal')" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div id="studentDetailsContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // ============ DATA STORAGE ============
+        let students = JSON.parse(localStorage.getItem('students')) || [];
+        let courses = JSON.parse(localStorage.getItem('courses')) || [];
+        let batches = JSON.parse(localStorage.getItem('batches')) || [];
+        let payments = JSON.parse(localStorage.getItem('payments')) || [];
+        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+        let sidebarCollapsed = false;
+        let studentRowCount = 0;
+        let filteredPayments = [];
+
+        // Default courses
+        if (courses.length === 0) {
+            courses = [
+                { id: 1, name: 'CCC', duration: 3, fee: 3000, regFee: 500, description: 'Course on Computer Concepts (NIELIT)' },
+                { id: 2, name: 'CCC+', duration: 4, fee: 4000, regFee: 500, description: 'Advanced CCC Course' },
+                { id: 3, name: 'O Level', duration: 12, fee: 15000, regFee: 1000, description: 'NIELIT O Level' },
+                { id: 4, name: 'Tally', duration: 3, fee: 5000, regFee: 300, description: 'Tally ERP 9 / Prime' },
+                { id: 5, name: 'Basic Computer', duration: 2, fee: 2000, regFee: 200, description: 'Basic Computer Course' }
+            ];
+            localStorage.setItem('courses', JSON.stringify(courses));
+        }
+
+        // Default batches
+        if (batches.length === 0) {
+            batches = [
+                { id: 1, name: 'January 2024', courseId: 1, startDate: '2024-01-01', timing: '10:00 AM - 12:00 PM' },
+                { id: 2, name: 'February 2024', courseId: 1, startDate: '2024-02-01', timing: '2:00 PM - 4:00 PM' }
+            ];
+            localStorage.setItem('batches', JSON.stringify(batches));
+        }
+
+        // Admin credentials
+        const ADMIN_CREDENTIALS = { id: 'admin', password: 'admin123' };
+
+        // Chart instances
+        let monthlyChart, statusChart, courseChart, courseCollectionChart, paymentModeChart, admissionChart, growthChart;
+
+        // ============ LOGIN SYSTEM ============
+        let loginType = 'admin';
+
+        function setLoginType(type) {
+            loginType = type;
+            document.getElementById('adminTab').className = type === 'admin' ? 
+                'flex-1 py-2 rounded-lg text-sm font-medium transition bg-indigo-600 text-white' : 
+                'flex-1 py-2 rounded-lg text-sm font-medium transition text-gray-600';
+            document.getElementById('studentTab').className = type === 'student' ? 
+                'flex-1 py-2 rounded-lg text-sm font-medium transition bg-indigo-600 text-white' : 
+                'flex-1 py-2 rounded-lg text-sm font-medium transition text-gray-600';
+            document.getElementById('loginIdLabel').textContent = type === 'admin' ? 'Admin ID' : 'Student ID';
+            document.getElementById('loginId').placeholder = type === 'admin' ? 'Enter admin ID' : 'Enter your Student ID';
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const id = document.getElementById('loginId').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+
+            if (loginType === 'admin') {
+                if (id === ADMIN_CREDENTIALS.id && password === ADMIN_CREDENTIALS.password) {
+                    currentUser = { type: 'admin', id: 'admin', name: 'Administrator' };
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    showMainApp();
+                } else {
+                    errorDiv.textContent = 'Invalid admin credentials!';
+                    errorDiv.classList.remove('hidden');
+                }
+            } else {
+                // Student login - ID is student ID, password is phone
+                const student = students.find(s => s.id.toString() === id && s.phone === password);
+                if (student) {
+                    currentUser = { type: 'student', id: student.id, name: student.name };
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    showMainApp();
+                } else {
+                    errorDiv.textContent = 'Invalid Student ID or Phone number!';
+                    errorDiv.classList.remove('hidden');
+                }
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('loginPage').classList.remove('hidden');
+            document.getElementById('loginForm').reset();
+            document.getElementById('loginError').classList.add('hidden');
+        }
+
+        function showMainApp() {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+
+            if (currentUser.type === 'admin') {
+                document.getElementById('adminSidebar').classList.remove('hidden');
+                document.getElementById('studentSidebar').classList.add('hidden');
+                document.getElementById('mobileTitle').textContent = 'Admin Panel';
+                initAdminView();
+            } else {
+                document.getElementById('adminSidebar').classList.add('hidden');
+                document.getElementById('studentSidebar').classList.remove('hidden');
+                document.getElementById('mobileTitle').textContent = 'Student Portal';
+                document.getElementById('studentWelcome').textContent = 'Welcome, ' + currentUser.name;
+                initStudentView();
+            }
+        }
+
+        // ============ INITIALIZATION ============
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('paymentDate').valueAsDate = new Date();
+            
+            if (currentUser) {
+                showMainApp();
+            }
+        });
+
+        function initAdminView() {
+            updateDashboard();
+            renderStudents();
+            renderCourses();
+            renderBatches();
+            renderFees();
+            renderPayments();
+            initCharts();
+            initAnalyticsCharts();
+        }
+
+        function initStudentView() {
+            const student = students.find(s => s.id === currentUser.id);
+            if (!student) return;
+
+            const course = courses.find(c => c.id === student.courseId);
+            const totalFee = getTotalCourseFee(course);
+            const paidAmount = student.paidAmount || 0;
+            const pending = Math.max(0, totalFee - paidAmount);
+            const studentPayments = payments.filter(p => p.studentId === student.id);
+
+            document.getElementById('studentNameDisplay').textContent = student.name;
+            document.getElementById('myTotalFee').textContent = '₹' + totalFee.toLocaleString('en-IN');
+            document.getElementById('myPaidAmount').textContent = '₹' + paidAmount.toLocaleString('en-IN');
+            document.getElementById('myPendingAmount').textContent = '₹' + pending.toLocaleString('en-IN');
+            document.getElementById('payNowPending').textContent = '₹' + pending.toLocaleString('en-IN');
+            document.getElementById('onlinePaymentAmount').value = pending;
+
+            // Course details
+            const batch = batches.find(b => b.id === student.batchId);
+            document.getElementById('myCourseDetails').innerHTML = `
+                <div class="flex justify-between"><span class="text-gray-500">Course:</span><span class="font-medium">${course?.name || 'N/A'}</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Batch:</span><span class="font-medium">${batch?.name || 'N/A'}</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Duration:</span><span class="font-medium">${course?.duration || 0} months</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Course Fee:</span><span class="font-medium">₹${(course?.fee || 0).toLocaleString('en-IN')}</span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Registration:</span><span class="font-medium">₹${(course?.regFee || 0).toLocaleString('en-IN')}</span></div>
+            `;
+
+            // Recent payments
+            const recentPay = studentPayments.slice(-5).reverse();
+            document.getElementById('myRecentPayments').innerHTML = recentPay.length > 0 ? 
+                recentPay.map(p => `
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <p class="font-medium">${new Date(p.date).toLocaleDateString('en-IN')}</p>
+                            <p class="text-xs text-gray-500">${p.method}</p>
+                        </div>
+                        <span class="text-green-600 font-bold">+₹${p.amount.toLocaleString('en-IN')}</span>
+                    </div>
+                `).join('') : '<p class="text-gray-500 text-center py-4">No payments yet</p>';
+
+            // Fee breakdown
+            document.getElementById('myFeeBreakdown').innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex justify-between py-3 border-b"><span>Course Fee</span><span class="font-medium">₹${(course?.fee || 0).toLocaleString('en-IN')}</span></div>
+                    <div class="flex justify-between py-3 border-b"><span>Registration Fee</span><span class="font-medium">₹${(course?.regFee || 0).toLocaleString('en-IN')}</span></div>
+                    <div class="flex justify-between py-3 border-b text-lg font-bold"><span>Total Fee</span><span>₹${totalFee.toLocaleString('en-IN')}</span></div>
+                    <div class="flex justify-between py-3 border-b text-green-600"><span>Paid Amount</span><span class="font-medium">₹${paidAmount.toLocaleString('en-IN')}</span></div>
+                    <div class="flex justify-between py-3 text-red-600 text-lg font-bold"><span>Pending Amount</span><span>₹${pending.toLocaleString('en-IN')}</span></div>
+                </div>
+            `;
+
+            // Payment history table
+            document.getElementById('myPaymentsTable').innerHTML = studentPayments.length > 0 ?
+                studentPayments.map(p => `
+                    <tr>
+                        <td class="px-6 py-4 text-sm font-medium">#RCP${p.id.toString().slice(-6)}</td>
+                        <td class="px-6 py-4 text-sm">${new Date(p.date).toLocaleDateString('en-IN')}</td>
+                        <td class="px-6 py-4 text-sm text-green-600 font-medium">₹${p.amount.toLocaleString('en-IN')}</td>
+                        <td class="px-6 py-4"><span class="px-2 py-1 bg-gray-100 rounded-full text-xs">${p.method}</span></td>
+                    </tr>
+                `).join('') : '<tr><td colspan="4" class="px-6 py-8 text-center text-gray-500">No payments found</td></tr>';
+
+            showStudentSection('studentDashboard');
+        }
+
+        // ============ HELPER FUNCTIONS ============
+        function getTotalCourseFee(course) {
+            return (course?.fee || 0) + (course?.regFee || 0);
+        }
+
+        function generateStudentId() {
+            const year = new Date().getFullYear().toString().slice(-2);
+            const random = Math.floor(1000 + Math.random() * 9000);
+            return parseInt(year + random);
+        }
+
+        // ============ NAVIGATION ============
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(sectionId).classList.remove('hidden');
+            document.querySelectorAll('#adminSidebar .sidebar-link').forEach(l => l.classList.remove('active'));
+            event.target.closest('.sidebar-link').classList.add('active');
+            if (window.innerWidth < 768) toggleMobileMenu();
+            if (sectionId === 'dashboard' || sectionId === 'analytics') updateAllCharts();
+        }
+
+        function showStudentSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(sectionId).classList.remove('hidden');
+            document.querySelectorAll('#studentSidebar .sidebar-link').forEach(l => l.classList.remove('active'));
+            event.target.closest('.sidebar-link').classList.add('active');
+            if (window.innerWidth < 768) toggleMobileMenu();
+        }
+
+        function toggleSidebar() {
+            const sidebar = currentUser?.type === 'admin' ? document.getElementById('adminSidebar') : document.getElementById('studentSidebar');
+            const mainContent = document.getElementById('mainContent');
+            const collapseIcon = document.getElementById('collapseIcon');
+            sidebarCollapsed = !sidebarCollapsed;
+            
+            if (sidebarCollapsed) {
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('expanded');
+                collapseIcon?.classList.replace('fa-chevron-left', 'fa-chevron-right');
+            } else {
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('expanded');
+                collapseIcon?.classList.replace('fa-chevron-right', 'fa-chevron-left');
+            }
+        }
+
+        function toggleMobileMenu() {
+            const sidebar = currentUser?.type === 'admin' ? document.getElementById('adminSidebar') : document.getElementById('studentSidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('hidden');
+        }
+
+        // ============ MODAL FUNCTIONS ============
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            if (modalId === 'bulkStudentModal') {
+                populateCourseDropdown('bulkCourse');
+                populateBatchDropdown('bulkBatch');
+                resetBulkStudentModal();
+            } else if (modalId === 'studentModal') {
+                populateCourseDropdown('studentCourse');
+                populateBatchDropdown('studentBatch');
+            } else if (modalId === 'paymentModal') {
+                populateStudentDropdown();
+            } else if (modalId === 'batchModal') {
+                populateCourseDropdown('batchCourse');
+            }
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function populateCourseDropdown(selectId) {
+            const select = document.getElementById(selectId);
+            select.innerHTML = '<option value="">Select Course</option>' + 
+                courses.map(c => `<option value="${c.id}">${c.name} - ₹${getTotalCourseFee(c).toLocaleString('en-IN')}</option>`).join('');
+        }
+
+        function populateBatchDropdown(selectId) {
+            const select = document.getElementById(selectId);
+            select.innerHTML = '<option value="">Select Batch</option>' + 
+                batches.map(b => {
+                    const course = courses.find(c => c.id === b.courseId);
+                    return `<option value="${b.id}">${b.name} (${course?.name || 'N/A'})</option>`;
+                }).join('');
+        }
+
+        function populateStudentDropdown() {
+            const select = document.getElementById('paymentStudent');
+            select.innerHTML = '<option value="">Select Student</option>' + 
+                students.map(s => {
+                    const course = courses.find(c => c.id === s.courseId);
+                    return `<option value="${s.id}">${s.name} (${course?.name || 'N/A'})</option>`;
+                }).join('');
+        }
+
+        function showPendingAmount() {
+            const studentId = parseInt(document.getElementById('paymentStudent').value);
+            const pendingInfo = document.getElementById('pendingInfo');
+            if (studentId) {
+                const student = students.find(s => s.id === studentId);
+                const course = courses.find(c => c.id === student?.courseId);
+                const pending = Math.max(0, getTotalCourseFee(course) - (student?.paidAmount || 0));
+                document.getElementById('pendingAmount').textContent = '₹' + pending.toLocaleString('en-IN');
+                pendingInfo.classList.remove('hidden');
+            } else {
+                pendingInfo.classList.add('hidden');
+            }
+        }
+
+        // ============ BULK STUDENT ADD ============
+        function resetBulkStudentModal() {
+            studentRowCount = 0;
+            document.getElementById('studentEntriesContainer').innerHTML = '';
+            for (let i = 0; i < 3; i++) addStudentRow();
+        }
+
+        function addStudentRow() {
+            studentRowCount++;
+            const container = document.getElementById('studentEntriesContainer');
+            const row = document.createElement('div');
+            row.className = 'student-row bg-gray-50 rounded-lg p-4';
+            row.id = `studentRow${studentRowCount}`;
+            row.innerHTML = `
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-sm font-medium text-gray-600">Student #${studentRowCount}</span>
+                    <button type="button" onclick="removeStudentRow(${studentRowCount})" class="text-red-500 hover:text-red-700">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <input type="text" placeholder="Full Name *" class="student-name px-3 py-2 border rounded-lg text-sm">
+                    <input type="tel" placeholder="Phone (Password) *" class="student-phone px-3 py-2 border rounded-lg text-sm">
+                    <input type="email" placeholder="Email (optional)" class="student-email px-3 py-2 border rounded-lg text-sm">
+                </div>
+            `;
+            container.appendChild(row);
+        }
+
+        function removeStudentRow(rowId) {
+            document.getElementById(`studentRow${rowId}`)?.remove();
+        }
+
+        function saveAllStudents() {
+            const courseId = parseInt(document.getElementById('bulkCourse').value);
+            const batchId = parseInt(document.getElementById('bulkBatch').value);
+            if (!courseId || !batchId) {
+                alert('Please select Course and Batch!');
+                return;
+            }
+
+            let addedCount = 0;
+            document.querySelectorAll('.student-row').forEach(row => {
+                const name = row.querySelector('.student-name').value.trim();
+                const phone = row.querySelector('.student-phone').value.trim();
+                const email = row.querySelector('.student-email').value.trim() || `${phone}@student.local`;
+
+                if (name && phone) {
+                    students.push({
+                        id: generateStudentId(),
+                        name, email, phone, courseId, batchId,
+                        paidAmount: 0,
+                        enrollDate: new Date().toISOString()
+                    });
+                    addedCount++;
+                }
+            });
+
+            if (addedCount > 0) {
+                localStorage.setItem('students', JSON.stringify(students));
+                closeModal('bulkStudentModal');
+                renderStudents();
+                renderFees();
+                renderBatches();
+                updateDashboard();
+                updateAllCharts();
+                alert(`${addedCount} student(s) added successfully!`);
+            } else {
+                alert('Please fill at least one student with name and phone!');
+            }
+        }
+
+        // ============ STUDENT CRUD ============
+        function saveStudent(e) {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('studentId').value);
+            const existingIndex = students.findIndex(s => s.id === id);
+            
+            if (existingIndex >= 0) {
+                students[existingIndex] = {
+                    ...students[existingIndex],
+                    name: document.getElementById('studentName').value,
+                    email: document.getElementById('studentEmail').value,
+                    phone: document.getElementById('studentPhone').value,
+                    courseId: parseInt(document.getElementById('studentCourse').value),
+                    batchId: parseInt(document.getElementById('studentBatch').value)
+                };
+            }
+
+            localStorage.setItem('students', JSON.stringify(students));
+            closeModal('studentModal');
+            renderStudents();
+            renderFees();
+            renderBatches();
+            updateDashboard();
+            updateAllCharts();
+        }
+
+        function editStudent(id) {
+            const student = students.find(s => s.id === id);
+            if (student) {
+                document.getElementById('studentId').value = student.id;
+                document.getElementById('studentName').value = student.name;
+                document.getElementById('studentEmail').value = student.email || '';
+                document.getElementById('studentPhone').value = student.phone;
+                openModal('studentModal');
+                setTimeout(() => {
+                    document.getElementById('studentCourse').value = student.courseId;
+                    document.getElementById('studentBatch').value = student.batchId;
+                }, 100);
+            }
+        }
+
+        function deleteStudent(id) {
+            if (confirm('Are you sure you want to delete this student?')) {
+                students = students.filter(s => s.id !== id);
+                payments = payments.filter(p => p.studentId !== id);
+                localStorage.setItem('students', JSON.stringify(students));
+                localStorage.setItem('payments', JSON.stringify(payments));
+                renderStudents();
+                renderFees();
+                renderPayments();
+                renderBatches();
+                updateDashboard();
+                updateAllCharts();
+            }
+        }
+
+        function viewStudentDetails(id) {
+            const student = students.find(s => s.id === id);
+            if (!student) return;
+            
+            const course = courses.find(c => c.id === student.courseId);
+            const batch = batches.find(b => b.id === student.batchId);
+            const totalFee = getTotalCourseFee(course);
+            const paidAmount = student.paidAmount || 0;
+            const pending = Math.max(0, totalFee - paidAmount);
+            const studentPayments = payments.filter(p => p.studentId === id).sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            const status = pending <= 0 ? 'Paid' : pending < totalFee ? 'Partial' : 'Unpaid';
+            const statusClass = status === 'Paid' ? 'bg-green-100 text-green-800' : status === 'Partial' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800';
+            
+            document.getElementById('studentDetailsContent').innerHTML = `
+                <div class="space-y-6">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-indigo-600 text-2xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold">${student.name}</h4>
+                            <p class="text-gray-500"><i class="fas fa-id-card mr-1"></i>ID: ${student.id}</p>
+                            <p class="text-gray-500"><i class="fas fa-phone mr-1"></i>${student.phone}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h5 class="font-semibold mb-2">Course & Batch</h5>
+                        <p><span class="text-gray-500">Course:</span> ${course?.name || 'N/A'}</p>
+                        <p><span class="text-gray-500">Batch:</span> ${batch?.name || 'N/A'}</p>
+                        <p><span class="text-gray-500">Duration:</span> ${course?.duration || 0} months</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="bg-blue-50 rounded-lg p-4 text-center">
+                            <p class="text-xs text-blue-600">Total Fee</p>
+                            <p class="text-lg font-bold text-blue-700">₹${totalFee.toLocaleString('en-IN')}</p>
+                        </div>
+                        <div class="bg-green-50 rounded-lg p-4 text-center">
+                            <p class="text-xs text-green-600">Paid</p>
+                            <p class="text-lg font-bold text-green-700">₹${paidAmount.toLocaleString('en-IN')}</p>
+                        </div>
+                        <div class="bg-red-50 rounded-lg p-4 text-center">
+                            <p class="text-xs text-red-600">Pending</p>
+                            <p class="text-lg font-bold text-red-700">₹${pending.toLocaleString('en-IN')}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <span class="px-4 py-2 ${statusClass} rounded-full text-sm font-medium">${status}</span>
+                    </div>
+                    
+                    <div>
+                        <h5 class="font-semibold mb-3">Payment History</h5>
+                        ${studentPayments.length > 0 ? `
+                            <div class="space-y-2 max-h-48 overflow-y-auto">
+                                ${studentPayments.map(p => `
+                                    <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
+                                        <div>
+                                            <p class="text-sm font-medium">${new Date(p.date).toLocaleDateString('en-IN')}</p>
+                                            <p class="text-xs text-gray-500">${p.method}</p>
+                                        </div>
+                                        <span class="text-green-600 font-bold">+₹${p.amount.toLocaleString('en-IN')}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : '<p class="text-gray-500 text-center py-4">No payments recorded</p>'}
+                    </div>
+                    
+                    <div class="flex gap-3">
+                        <button onclick="closeModal('studentDetailsModal'); quickPay(${student.id})" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                            <i class="fas fa-plus-circle mr-2"></i>Add Payment
+                        </button>
+                        <button onclick="closeModal('studentDetailsModal'); editStudent(${student.id})" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition">
+                            <i class="fas fa-edit mr-2"></i>Edit
+                        </button>
+                    </div>
+                </div>
+            `;
+            openModal('studentDetailsModal');
+        }
+
+        function quickPay(studentId) {
+            openModal('paymentModal');
+            setTimeout(() => {
+                document.getElementById('paymentStudent').value = studentId;
+                showPendingAmount();
+            }, 100);
+        }
+
+        function filterStudents() {
+            const search = document.getElementById('searchStudent').value.toLowerCase();
+            const batchFilter = document.getElementById('filterBatch').value;
+            const courseFilter = document.getElementById('filterCourse').value;
+
+            const filtered = students.filter(s => {
+                const matchSearch = s.name.toLowerCase().includes(search) || s.phone.includes(search);
+                const matchBatch = !batchFilter || s.batchId == batchFilter;
+                const matchCourse = !courseFilter || s.courseId == courseFilter;
+                return matchSearch && matchBatch && matchCourse;
+            });
+
+            renderStudentsGrid(filtered);
+        }
+
+        function renderStudents() {
+            // Populate filter dropdowns
+            document.getElementById('filterBatch').innerHTML = '<option value="">All Batches</option>' + 
+                batches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+            document.getElementById('filterCourse').innerHTML = '<option value="">All Courses</option>' + 
+                courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+            const totalCollected = students.reduce((sum, s) => sum + (s.paidAmount || 0), 0);
+            const totalExpected = students.reduce((sum, s) => sum + getTotalCourseFee(courses.find(c => c.id === s.courseId)), 0);
+            
+            document.getElementById('studentsCount').textContent = students.length;
+            document.getElementById('studentsTotalCollected').textContent = '₹' + totalCollected.toLocaleString('en-IN');
+            document.getElementById('studentsTotalPending').textContent = '₹' + Math.max(0, totalExpected - totalCollected).toLocaleString('en-IN');
+            
+            renderStudentsGrid(students);
+        }
+
+        function renderStudentsGrid(studentsList) {
+            const grid = document.getElementById('studentsGrid');
+            if (studentsList.length === 0) {
+                grid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-8">No students found</p>';
+                return;
+            }
+            
+            grid.innerHTML = studentsList.map(student => {
+                const course = courses.find(c => c.id === student.courseId);
+                const batch = batches.find(b => b.id === student.batchId);
+                const totalFee = getTotalCourseFee(course);
+                const paidAmount = student.paidAmount || 0;
+                const pending = Math.max(0, totalFee - paidAmount);
+                const status = pending <= 0 ? 'Paid' : pending < totalFee ? 'Partial' : 'Unpaid';
+                const statusClass = status === 'Paid' ? 'bg-green-100 text-green-800' : status === 'Partial' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800';
+                const progress = totalFee > 0 ? Math.min(100, (paidAmount / totalFee) * 100) : 0;
+                
+                return `
+                    <div class="bg-white rounded-xl shadow-lg p-5 hover:shadow-xl transition">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-indigo-600"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-gray-800">${student.name}</h4>
+                                    <p class="text-xs text-gray-500">ID: ${student.id}</p>
+                                    <p class="text-xs text-gray-500">${course?.name || 'N/A'} | ${batch?.name || 'N/A'}</p>
+                                </div>
+                            </div>
+                            <span class="px-2 py-1 ${statusClass} rounded-full text-xs">${status}</span>
+                        </div>
+                        
+                        <div class="space-y-2 mb-4 text-sm">
+                            <div class="flex justify-between"><span class="text-gray-500">Total:</span><span class="font-medium">₹${totalFee.toLocaleString('en-IN')}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-500">Paid:</span><span class="text-green-600">₹${paidAmount.toLocaleString('en-IN')}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-500">Pending:</span><span class="text-red-600">₹${pending.toLocaleString('en-IN')}</span></div>
+                        </div>
+                        
+                        <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
+                            <div class="bg-indigo-600 h-2 rounded-full" style="width: ${progress}%"></div>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <button onclick="viewStudentDetails(${student.id})" class="flex-1 px-3 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition text-sm font-medium">
+                                <i class="fas fa-eye mr-1"></i>Details
+                            </button>
+                            <button onclick="editStudent(${student.id})" class="px-3 py-2 text-gray-400 hover:text-indigo-600"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteStudent(${student.id})" class="px-3 py-2 text-gray-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============ BATCH CRUD ============
+        function saveBatch(e) {
+            e.preventDefault();
+            const id = document.getElementById('batchId').value || Date.now();
+            const batch = {
+                id: parseInt(id),
+                name: document.getElementById('batchName').value,
+                courseId: parseInt(document.getElementById('batchCourse').value),
+                startDate: document.getElementById('batchStartDate').value,
+                timing: document.getElementById('batchTiming').value
+            };
+
+            const existingIndex = batches.findIndex(b => b.id === batch.id);
+            if (existingIndex >= 0) {
+                batches[existingIndex] = batch;
+            } else {
+                batches.push(batch);
+            }
+
+            localStorage.setItem('batches', JSON.stringify(batches));
+            closeModal('batchModal');
+            renderBatches();
+            updateDashboard();
+        }
+
+        function editBatch(id) {
+            const batch = batches.find(b => b.id === id);
+            if (batch) {
+                document.getElementById('batchId').value = batch.id;
+                document.getElementById('batchName').value = batch.name;
+                document.getElementById('batchStartDate').value = batch.startDate;
+                document.getElementById('batchTiming').value = batch.timing || '';
+                openModal('batchModal');
+                setTimeout(() => document.getElementById('batchCourse').value = batch.courseId, 100);
+            }
+        }
+
+        function deleteBatch(id) {
+            if (confirm('Delete this batch?')) {
+                batches = batches.filter(b => b.id !== id);
+                localStorage.setItem('batches', JSON.stringify(batches));
+                renderBatches();
+                updateDashboard();
+            }
+        }
+
+        function renderBatches() {
+            const grid = document.getElementById('batchesGrid');
+            if (batches.length === 0) {
+                grid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-8">No batches found</p>';
+                return;
+            }
+
+            grid.innerHTML = batches.map(batch => {
+                const course = courses.find(c => c.id === batch.courseId);
+                const batchStudents = students.filter(s => s.batchId === batch.id);
+                const totalCollected = batchStudents.reduce((sum, s) => sum + (s.paidAmount || 0), 0);
+                const totalPending = batchStudents.reduce((sum, s) => {
+                    const c = courses.find(co => co.id === s.courseId);
+                    return sum + Math.max(0, getTotalCourseFee(c) - (s.paidAmount || 0));
+                }, 0);
+
+                return `
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-layer-group text-purple-600 text-xl"></i>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="editBatch(${batch.id})" class="text-gray-400 hover:text-indigo-600"><i class="fas fa-edit"></i></button>
+                                <button onclick="deleteBatch(${batch.id})" class="text-gray-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                        <h4 class="text-lg font-bold text-gray-800">${batch.name}</h4>
+                        <p class="text-sm text-gray-500">${course?.name || 'N/A'}</p>
+                        <p class="text-xs text-gray-400 mt-1"><i class="fas fa-clock mr-1"></i>${batch.timing || 'No timing set'}</p>
+                        
+                        <div class="mt-4 pt-4 border-t space-y-2 text-sm">
+                            <div class="flex justify-between"><span class="text-gray-500">Students:</span><span class="font-medium">${batchStudents.length}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-500">Collected:</span><span class="text-green-600">₹${totalCollected.toLocaleString('en-IN')}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-500">Pending:</span><span class="text-red-600">₹${totalPending.toLocaleString('en-IN')}</span></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============ COURSE CRUD ============
+        function saveCourse(e) {
+            e.preventDefault();
+            const id = document.getElementById('courseId').value || Date.now();
+            const course = {
+                id: parseInt(id),
+                name: document.getElementById('courseName').value,
+                duration: parseInt(document.getElementById('courseDuration').value),
+                fee: parseFloat(document.getElementById('courseFee').value),
+                regFee: parseFloat(document.getElementById('courseRegFee').value) || 0,
+                description: document.getElementById('courseDescription').value
+            };
+
+            const existingIndex = courses.findIndex(c => c.id === course.id);
+            if (existingIndex >= 0) courses[existingIndex] = course;
+            else courses.push(course);
+
+            localStorage.setItem('courses', JSON.stringify(courses));
+            closeModal('courseModal');
+            document.getElementById('courseForm').reset();
+            renderCourses();
+            renderStudents();
+            renderFees();
+            updateDashboard();
+            updateAllCharts();
+        }
+
+        function editCourse(id) {
+            const course = courses.find(c => c.id === id);
+            if (course) {
+                document.getElementById('courseId').value = course.id;
+                document.getElementById('courseName').value = course.name;
+                document.getElementById('courseDuration').value = course.duration;
+                document.getElementById('courseFee').value = course.fee;
+                document.getElementById('courseRegFee').value = course.regFee || 0;
+                document.getElementById('courseDescription').value = course.description || '';
+                openModal('courseModal');
+            }
+        }
+
+        function deleteCourse(id) {
+            if (confirm('Delete this course?')) {
+                courses = courses.filter(c => c.id !== id);
+                localStorage.setItem('courses', JSON.stringify(courses));
+                renderCourses();
+                updateDashboard();
+                updateAllCharts();
+            }
+        }
+
+        function renderCourses() {
+            const grid = document.getElementById('coursesGrid');
+            grid.innerHTML = courses.map(course => {
+                const enrolledCount = students.filter(s => s.courseId === course.id).length;
+                return `
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-book text-indigo-600 text-xl"></i>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="editCourse(${course.id})" class="text-gray-400 hover:text-indigo-600"><i class="fas fa-edit"></i></button>
+                                <button onclick="deleteCourse(${course.id})" class="text-gray-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                        <h4 class="text-lg font-bold text-gray-800">${course.name}</h4>
+                        <p class="text-sm text-gray-500 mt-1">${course.description || 'No description'}</p>
+                        <div class="mt-4 space-y-1 text-sm">
+                            <div class="flex justify-between"><span class="text-gray-500">Fee:</span><span>₹${course.fee.toLocaleString('en-IN')}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-500">Registration:</span><span>₹${(course.regFee || 0).toLocaleString('en-IN')}</span></div>
+                            <div class="flex justify-between font-bold pt-1 border-t"><span>Total:</span><span class="text-indigo-600">₹${getTotalCourseFee(course).toLocaleString('en-IN')}</span></div>
+                        </div>
+                        <div class="mt-3 flex justify-between text-sm text-gray-500">
+                            <span><i class="fas fa-clock mr-1"></i>${course.duration} months</span>
+                            <span><i class="fas fa-users mr-1"></i>${enrolledCount} enrolled</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============ PAYMENT CRUD ============
+        function savePayment(e) {
+            e.preventDefault();
+            const studentId = parseInt(document.getElementById('paymentStudent').value);
+            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            
+            payments.push({
+                id: Date.now(),
+                studentId,
+                amount,
+                method: document.getElementById('paymentMethod').value,
+                date: document.getElementById('paymentDate').value
+            });
+
+            const studentIndex = students.findIndex(s => s.id === studentId);
+            if (studentIndex >= 0) {
+                students[studentIndex].paidAmount = (students[studentIndex].paidAmount || 0) + amount;
+                localStorage.setItem('students', JSON.stringify(students));
+            }
+
+            localStorage.setItem('payments', JSON.stringify(payments));
+            closeModal('paymentModal');
+            document.getElementById('paymentForm').reset();
+            document.getElementById('paymentDate').valueAsDate = new Date();
+            document.getElementById('pendingInfo').classList.add('hidden');
+            
+            renderPayments();
+            renderFees();
+            renderStudents();
+            renderBatches();
+            updateDashboard();
+            updateAllCharts();
+        }
+
+        // ============ FEES TABLE ============
+        function renderFees() {
+            const tbody = document.getElementById('feesTable');
+            let totalExpected = 0, totalCollected = 0;
+            
+            students.forEach(s => {
+                const course = courses.find(c => c.id === s.courseId);
+                totalExpected += getTotalCourseFee(course);
+                totalCollected += s.paidAmount || 0;
+            });
+            
+            document.getElementById('feeTotalExpected').textContent = '₹' + totalExpected.toLocaleString('en-IN');
+            document.getElementById('feeTotalCollected').textContent = '₹' + totalCollected.toLocaleString('en-IN');
+            document.getElementById('feeTotalPending').textContent = '₹' + Math.max(0, totalExpected - totalCollected).toLocaleString('en-IN');
+            
+            tbody.innerHTML = students.length === 0 ? 
+                '<tr><td colspan="8" class="px-6 py-8 text-center text-gray-500">No students enrolled</td></tr>' :
+                students.map(student => {
+                    const course = courses.find(c => c.id === student.courseId);
+                    const batch = batches.find(b => b.id === student.batchId);
+                    const totalFee = getTotalCourseFee(course);
+                    const paidAmount = student.paidAmount || 0;
+                    const pending = Math.max(0, totalFee - paidAmount);
+                    const status = pending <= 0 ? 'Paid' : pending < totalFee ? 'Partial' : 'Unpaid';
+                    const statusClass = status === 'Paid' ? 'bg-green-100 text-green-800' : status === 'Partial' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800';
+                    
+                    return `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-4 font-medium">${student.name}<br><span class="text-xs text-gray-400">ID: ${student.id}</span></td>
+                            <td class="px-4 py-4 text-sm">${batch?.name || 'N/A'}</td>
+                            <td class="px-4 py-4 text-sm">${course?.name || 'N/A'}</td>
+                            <td class="px-4 py-4 text-sm">₹${totalFee.toLocaleString('en-IN')}</td>
+                            <td class="px-4 py-4 text-sm text-green-600">₹${paidAmount.toLocaleString('en-IN')}</td>
+                            <td class="px-4 py-4 text-sm text-red-600">₹${pending.toLocaleString('en-IN')}</td>
+                            <td class="px-4 py-4"><span class="px-2 py-1 ${statusClass} rounded-full text-xs">${status}</span></td>
+                            <td class="px-4 py-4">
+                                <button onclick="quickPay(${student.id})" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+                                    <i class="fas fa-plus-circle mr-1"></i>Pay
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+        }
+
+        // ============ PAYMENTS & FILTERS ============
+        function renderPayments() {
+            document.getElementById('filterStudent').innerHTML = '<option value="">All Students</option>' + 
+                students.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            applyFilters();
+        }
+
+        function getFilteredPayments() {
+            const dateFrom = document.getElementById('filterDateFrom').value;
+            const dateTo = document.getElementById('filterDateTo').value;
+            const method = document.getElementById('filterMethod').value;
+            const studentId = document.getElementById('filterStudent').value;
+
+            return payments.filter(p => {
+                const paymentDate = new Date(p.date);
+                if (dateFrom && new Date(dateFrom) > paymentDate) return false;
+                if (dateTo && new Date(dateTo) < paymentDate) return false;
+                if (method && p.method !== method) return false;
+                if (studentId && p.studentId !== parseInt(studentId)) return false;
+                return true;
+            });
+        }
+
+        function applyFilters() {
+            filteredPayments = getFilteredPayments();
+            const total = filteredPayments.reduce((sum, p) => sum + p.amount, 0);
+            const count = filteredPayments.length;
+            const avg = count > 0 ? Math.round(total / count) : 0;
+            const max = count > 0 ? Math.max(...filteredPayments.map(p => p.amount)) : 0;
+            
+            document.getElementById('filteredPaymentCount').textContent = count;
+            document.getElementById('filteredPaymentTotal').textContent = '₹' + total.toLocaleString('en-IN');
+            document.getElementById('filteredPaymentAvg').textContent = '₹' + avg.toLocaleString('en-IN');
+            document.getElementById('filteredPaymentMax').textContent = '₹' + max.toLocaleString('en-IN');
+            
+            document.getElementById('paymentsTable').innerHTML = filteredPayments.length === 0 ? 
+                '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">No payments found</td></tr>' :
+                [...filteredPayments].sort((a, b) => new Date(b.date) - new Date(a.date)).map(p => {
+                    const student = students.find(s => s.id === p.studentId);
+                    return `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-4 text-sm font-medium">#RCP${p.id.toString().slice(-6)}</td>
+                            <td class="px-4 py-4 text-sm">${new Date(p.date).toLocaleDateString('en-IN')}</td>
+                            <td class="px-4 py-4 text-sm">${student?.name || 'Unknown'}</td>
+                            <td class="px-4 py-4 text-sm text-green-600 font-medium">₹${p.amount.toLocaleString('en-IN')}</td>
+                            <td class="px-4 py-4"><span class="px-2 py-1 bg-gray-100 rounded-full text-xs">${p.method}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+        }
+
+        function clearFilters() {
+            document.getElementById('filterDateFrom').value = '';
+            document.getElementById('filterDateTo').value = '';
+            document.getElementById('filterMethod').value = '';
+            document.getElementById('filterStudent').value = '';
+            applyFilters();
+        }
+
+        function setQuickFilter(period) {
+            const today = new Date();
+            let fromDate = new Date();
+            
+            switch(period) {
+                case 'today': fromDate = today; break;
+                case 'week': fromDate.setDate(today.getDate() - 7); break;
+                case 'month': fromDate = new Date(today.getFullYear(), today.getMonth(), 1); break;
+                case 'year': fromDate = new Date(today.getFullYear(), 0, 1); break;
+                case 'all': clearFilters(); return;
+            }
+            
+            document.getElementById('filterDateFrom').value = fromDate.toISOString().split('T')[0];
+            document.getElementById('filterDateTo').value = today.toISOString().split('T')[0];
+            applyFilters();
+        }
+
+        // ============ DASHBOARD ============
+        function updateDashboard() {
+            document.getElementById('totalStudents').textContent = students.length;
+            document.getElementById('totalBatches').textContent = batches.length;
+            
+            const totalCollected = payments.reduce((sum, p) => sum + p.amount, 0);
+            document.getElementById('totalCollected').textContent = '₹' + totalCollected.toLocaleString('en-IN');
+            
+            const totalExpected = students.reduce((sum, s) => sum + getTotalCourseFee(courses.find(c => c.id === s.courseId)), 0);
+            document.getElementById('pendingFees').textContent = '₹' + Math.max(0, totalExpected - totalCollected).toLocaleString('en-IN');
+
+            // Recent payments
+            const recent = [...payments].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+            document.getElementById('recentPayments').innerHTML = recent.length === 0 ? 
+                '<p class="text-gray-500 text-center py-4">No payments yet</p>' :
+                recent.map(p => {
+                    const student = students.find(s => s.id === p.studentId);
+                    return `
+                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                            <div>
+                                <p class="font-medium">${student?.name || 'Unknown'}</p>
+                                <p class="text-xs text-gray-500">${new Date(p.date).toLocaleDateString('en-IN')} • ${p.method}</p>
+                            </div>
+                            <span class="text-green-600 font-bold">+₹${p.amount.toLocaleString('en-IN')}</span>
+                        </div>
+                    `;
+                }).join('');
+        }
+
+        // ============ CHARTS ============
+        function initCharts() {
+            const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+            monthlyChart = new Chart(monthlyCtx, {
+                type: 'bar',
+                data: { labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], datasets: [{ label: 'Collection (₹)', data: getMonthlyData(), backgroundColor: 'rgba(99, 102, 241, 0.8)', borderRadius: 8 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            statusChart = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: { labels: ['Paid', 'Partial', 'Unpaid'], datasets: [{ data: getStatusData(), backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            const courseCtx = document.getElementById('courseChart').getContext('2d');
+            courseChart = new Chart(courseCtx, {
+                type: 'pie',
+                data: { labels: courses.map(c => c.name), datasets: [{ data: courses.map(c => students.filter(s => s.courseId === c.id).length), backgroundColor: ['#6366f1', '#f43f5e', '#14b8a6', '#f59e0b', '#8b5cf6', '#06b6d4'] }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function initAnalyticsCharts() {
+            // Course Collection Chart
+            const courseCollectionCtx = document.getElementById('courseCollectionChart').getContext('2d');
+            courseCollectionChart = new Chart(courseCollectionCtx, {
+                type: 'bar',
+                data: { labels: courses.map(c => c.name), datasets: [{ label: 'Collected', data: getCourseCollectionData(), backgroundColor: '#10b981' }, { label: 'Pending', data: getCoursePendingData(), backgroundColor: '#ef4444' }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } }
+            });
+
+            // Payment Mode Chart
+            const paymentModeCtx = document.getElementById('paymentModeChart').getContext('2d');
+            paymentModeChart = new Chart(paymentModeCtx, {
+                type: 'doughnut',
+                data: { labels: ['Cash', 'UPI', 'Card', 'Bank Transfer'], datasets: [{ data: getPaymentModeData(), backgroundColor: ['#10b981', '#8b5cf6', '#3b82f6', '#f59e0b'] }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // Admission Chart
+            const admissionCtx = document.getElementById('admissionChart').getContext('2d');
+            admissionChart = new Chart(admissionCtx, {
+                type: 'bar',
+                data: { labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], datasets: [{ label: 'Admissions', data: getAdmissionData(), backgroundColor: '#6366f1', borderRadius: 8 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            // Growth Chart
+            const growthCtx = document.getElementById('growthChart').getContext('2d');
+            growthChart = new Chart(growthCtx, {
+                type: 'line',
+                data: { labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], datasets: [{ label: 'Total Students', data: getGrowthData(), borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', fill: true, tension: 0.4 }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function getMonthlyData() {
+            const data = new Array(12).fill(0);
+            payments.forEach(p => { data[new Date(p.date).getMonth()] += p.amount; });
+            return data;
+        }
+
+        function getStatusData() {
+            let paid = 0, partial = 0, unpaid = 0;
+            students.forEach(s => {
+                const course = courses.find(c => c.id === s.courseId);
+                const totalFee = getTotalCourseFee(course);
+                const paidAmount = s.paidAmount || 0;
+                if (paidAmount >= totalFee) paid++;
+                else if (paidAmount > 0) partial++;
+                else unpaid++;
+            });
+            return [paid, partial, unpaid];
+        }
+
+        function getCourseCollectionData() {
+            return courses.map(c => students.filter(s => s.courseId === c.id).reduce((sum, s) => sum + (s.paidAmount || 0), 0));
+        }
+
+        function getCoursePendingData() {
+            return courses.map(c => {
+                const courseStudents = students.filter(s => s.courseId === c.id);
+                return courseStudents.reduce((sum, s) => sum + Math.max(0, getTotalCourseFee(c) - (s.paidAmount || 0)), 0);
+            });
+        }
+
+        function getPaymentModeData() {
+            const modes = { 'Cash': 0, 'UPI': 0, 'Card': 0, 'Bank Transfer': 0 };
+            payments.forEach(p => { modes[p.method] = (modes[p.method] || 0) + p.amount; });
+            return Object.values(modes);
+        }
+
+        function getAdmissionData() {
+            const data = new Array(12).fill(0);
+            students.forEach(s => { if (s.enrollDate) data[new Date(s.enrollDate).getMonth()]++; });
+            return data;
+        }
+
+        function getGrowthData() {
+            const data = new Array(12).fill(0);
+            let cumulative = 0;
+            students.forEach(s => { if (s.enrollDate) data[new Date(s.enrollDate).getMonth()]++; });
+            return data.map(d => cumulative += d);
+        }
+
+        function updateAllCharts() {
+            if (monthlyChart) { monthlyChart.data.datasets[0].data = getMonthlyData(); monthlyChart.update(); }
+            if (statusChart) { statusChart.data.datasets[0].data = getStatusData(); statusChart.update(); }
+            if (courseChart) { courseChart.data.labels = courses.map(c => c.name); courseChart.data.datasets[0].data = courses.map(c => students.filter(s => s.courseId === c.id).length); courseChart.update(); }
+            if (courseCollectionChart) { courseCollectionChart.data.labels = courses.map(c => c.name); courseCollectionChart.data.datasets[0].data = getCourseCollectionData(); courseCollectionChart.data.datasets[1].data = getCoursePendingData(); courseCollectionChart.update(); }
+            if (paymentModeChart) { paymentModeChart.data.datasets[0].data = getPaymentModeData(); paymentModeChart.update(); }
+            if (admissionChart) { admissionChart.data.datasets[0].data = getAdmissionData(); admissionChart.update(); }
+            if (growthChart) { growthChart.data.datasets[0].data = getGrowthData(); growthChart.update(); }
+        }
+
+        // ============ EXCEL EXPORTS ============
+        function downloadExcel(data, filename) {
+            if (data.length === 0) { alert('No data to export!'); return; }
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+            XLSX.writeFile(wb, `${filename}_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        function exportStudentsToExcel() {
+            let totalFee = 0, totalPaid = 0, totalPending = 0;
+            const data = students.map(s => {
+                const course = courses.find(c => c.id === s.courseId);
+                const batch = batches.find(b => b.id === s.batchId);
+                const fee = getTotalCourseFee(course);
+                const paid = s.paidAmount || 0;
+                const pending = Math.max(0, fee - paid);
+                totalFee += fee; totalPaid += paid; totalPending += pending;
+                return { 'Student ID': s.id, 'Name': s.name, 'Phone': s.phone, 'Email': s.email, 'Course': course?.name, 'Batch': batch?.name, 'Total Fee': fee, 'Paid': paid, 'Pending': pending, 'Status': pending <= 0 ? 'Paid' : pending < fee ? 'Partial' : 'Unpaid' };
+            });
+            data.push({ 'Student ID': '', 'Name': 'TOTAL', 'Phone': `${students.length} Students`, 'Email': '', 'Course': '', 'Batch': '', 'Total Fee': totalFee, 'Paid': totalPaid, 'Pending': totalPending, 'Status': '' });
+            downloadExcel(data, 'Students_Data');
+        }
+
+        function exportCoursesToExcel() {
+            downloadExcel(courses.map(c => ({ 'Course': c.name, 'Duration': c.duration, 'Fee': c.fee, 'Registration': c.regFee, 'Total': getTotalCourseFee(c), 'Enrolled': students.filter(s => s.courseId === c.id).length })), 'Courses_Data');
+        }
+
+        function exportFeesToExcel() {
+            let totalFee = 0, totalPaid = 0, totalPending = 0;
+            const data = students.map(s => {
+                const course = courses.find(c => c.id === s.courseId);
+                const fee = getTotalCourseFee(course);
+                const paid = s.paidAmount || 0;
+                const pending = Math.max(0, fee - paid);
+                totalFee += fee; totalPaid += paid; totalPending += pending;
+                return { 'Student': s.name, 'Phone': s.phone, 'Course': course?.name, 'Total Fee': fee, 'Paid': paid, 'Pending': pending, 'Status': pending <= 0 ? 'Paid' : pending < fee ? 'Partial' : 'Unpaid' };
+            });
+            data.push({ 'Student': 'TOTAL', 'Phone': `${students.length} Students`, 'Course': '', 'Total Fee': totalFee, 'Paid': totalPaid, 'Pending': totalPending, 'Status': '' });
+            downloadExcel(data, 'Fee_Status');
+        }
+
+        function exportFilteredPaymentsToExcel() {
+            const list = filteredPayments.length > 0 ? filteredPayments : payments;
+            let total = 0;
+            const data = list.map(p => {
+                const student = students.find(s => s.id === p.studentId);
+                total += p.amount;
+                return { 'Receipt': 'RCP' + p.id.toString().slice(-6), 'Date': new Date(p.date).toLocaleDateString('en-IN'), 'Student': student?.name, 'Phone': student?.phone, 'Amount': p.amount, 'Method': p.method };
+            });
+            data.push({ 'Receipt': '', 'Date': 'TOTAL', 'Student': `${list.length} Transactions`, 'Phone': '', 'Amount': total, 'Method': '' });
+            downloadExcel(data, 'Payment_History');
+        }
+
+        function exportAllData() {
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(students), 'Students');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(courses), 'Courses');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(batches), 'Batches');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(payments), 'Payments');
+            XLSX.writeFile(wb, `All_Data_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        function clearAllData() {
+            if (confirm('Are you sure? This will delete ALL data!')) {
+                students = []; payments = [];
+                localStorage.setItem('students', JSON.stringify(students));
+                localStorage.setItem('payments', JSON.stringify(payments));
+                location.reload();
+            }
+        }
+
+        // ============ GOOGLE SHEETS SYNC ============
+        async function syncToGoogleSheets() {
+            const url = document.getElementById('googleSheetUrl').value;
+            if (!url) { alert('Please enter Google Apps Script URL!'); return; }
+            
+            const data = {
+                students: students.map(s => {
+                    const course = courses.find(c => c.id === s.courseId);
+                    const batch = batches.find(b => b.id === s.batchId);
+                    return { id: s.id, name: s.name, email: s.email, phone: s.phone, course: course?.name, batch: batch?.name, totalFee: getTotalCourseFee(course), paidAmount: s.paidAmount || 0, pending: Math.max(0, getTotalCourseFee(course) - (s.paidAmount || 0)), enrollDate: new Date(s.enrollDate).toLocaleDateString('en-IN') };
+                }),
+                payments: payments.map(p => {
+                    const student = students.find(s => s.id === p.studentId);
+                    return { id: p.id, date: new Date(p.date).toLocaleDateString('en-IN'), studentId: p.studentId, studentName: student?.name, amount: p.amount, method: p.method };
+                }),
+                courses: courses.map(c => ({ id: c.id, name: c.name, duration: c.duration, fee: c.fee, regFee: c.regFee, description: c.description })),
+                batches: batches.map(b => ({ id: b.id, name: b.name, courseId: b.courseId, startDate: b.startDate, timing: b.timing }))
+            };
+            
+            try {
+                await fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+                alert('Data synced to Google Sheets!');
+            } catch (error) {
+                alert('Error syncing: ' + error.message);
+            }
+        }
+
+        // ============ ONLINE PAYMENT (DEMO) ============
+        function payWithUPI() {
+            const amount = document.getElementById('onlinePaymentAmount').value;
+            if (!amount || amount <= 0) { alert('Enter valid amount!'); return; }
+            const student = students.find(s => s.id === currentUser.id);
+            const upiUrl = `upi://pay?pa=example@upi&pn=Fee%20Payment&am=${amount}&cu=INR&tn=Fee%20Payment%20for%20${student.name}`;
+            window.open(upiUrl, '_blank');
+            alert('UPI payment initiated! Please complete payment in your UPI app.');
+        }
+
+        function payWithRazorpay() {
+            alert('Razorpay integration requires backend setup. Contact admin for payment link.');
+        }
+    </script>
+</body>
+</html>
