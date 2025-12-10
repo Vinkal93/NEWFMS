@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,45 +10,120 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .sidebar-link.active { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
-        .card-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .card-gradient-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-        .card-gradient-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-        .card-gradient-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
-        .card-gradient-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-        .card-gradient-6 { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
-        .modal { transition: opacity 0.3s ease; }
-        .login-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        
-        .sidebar { transition: all 0.3s ease; }
-        .sidebar.collapsed { width: 80px; }
-        .sidebar.collapsed .sidebar-text { display: none; }
-        .sidebar.collapsed .sidebar-link { justify-content: center; }
-        .sidebar.collapsed .sidebar-link i { margin: 0; font-size: 1.25rem; }
-        .sidebar.collapsed .logo-text { display: none; }
-        
-        .main-content { transition: margin-left 0.3s ease; }
-        .main-content.expanded { margin-left: 80px; }
-        
-        .mobile-overlay { background: rgba(0,0,0,0.5); transition: opacity 0.3s ease; }
-        
+        .sidebar-link.active {
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+        }
+
+        .card-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card-gradient-2 {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .card-gradient-3 {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .card-gradient-4 {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .card-gradient-5 {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .card-gradient-6 {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
+
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+
+        .login-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar.collapsed .sidebar-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .sidebar-link {
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .sidebar-link i {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        .sidebar.collapsed .logo-text {
+            display: none;
+        }
+
+        .main-content {
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 80px;
+        }
+
+        .mobile-overlay {
+            background: rgba(0, 0, 0, 0.5);
+            transition: opacity 0.3s ease;
+        }
+
         @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); z-index: 50; }
-            .sidebar.mobile-open { transform: translateX(0); }
-            .main-content { margin-left: 0 !important; }
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 50;
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+            }
         }
-        
-        .student-row { animation: fadeIn 0.3s ease; }
+
+        .student-row {
+            animation: fadeIn 0.3s ease;
+        }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
-        .chart-container { position: relative; height: 250px; }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
     </style>
 </head>
+
 <body class="bg-gray-100 font-sans">
-    
+
     <!-- Login Page -->
     <div id="loginPage" class="login-bg min-h-screen flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
@@ -58,17 +134,19 @@
                 <h1 class="text-2xl font-bold text-gray-800">Fee Management System</h1>
                 <p class="text-gray-500">Login to continue</p>
             </div>
-            
+
             <!-- Login Type Toggle -->
             <div class="flex bg-gray-100 rounded-lg p-1 mb-6">
-                <button onclick="setLoginType('admin')" id="adminTab" class="flex-1 py-2 rounded-lg text-sm font-medium transition bg-indigo-600 text-white">
+                <button onclick="setLoginType('admin')" id="adminTab"
+                    class="flex-1 py-2 rounded-lg text-sm font-medium transition bg-indigo-600 text-white">
                     <i class="fas fa-user-shield mr-2"></i>Admin
                 </button>
-                <button onclick="setLoginType('student')" id="studentTab" class="flex-1 py-2 rounded-lg text-sm font-medium transition text-gray-600">
+                <button onclick="setLoginType('student')" id="studentTab"
+                    class="flex-1 py-2 rounded-lg text-sm font-medium transition text-gray-600">
                     <i class="fas fa-user-graduate mr-2"></i>Student
                 </button>
             </div>
-            
+
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="space-y-4">
                     <div>
@@ -77,7 +155,7 @@
                         </label>
                         <div class="relative">
                             <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                            <input type="text" id="loginId" required placeholder="Enter your ID" 
+                            <input type="text" id="loginId" required placeholder="Enter your ID"
                                 class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
                         </div>
                     </div>
@@ -85,18 +163,19 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
                         <div class="relative">
                             <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                            <input type="password" id="loginPassword" required placeholder="Enter password" 
+                            <input type="password" id="loginPassword" required placeholder="Enter password"
                                 class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
                         </div>
                     </div>
                 </div>
-                <button type="submit" class="w-full mt-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium">
+                <button type="submit"
+                    class="w-full mt-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium">
                     <i class="fas fa-sign-in-alt mr-2"></i>Login
                 </button>
             </form>
-            
+
             <div id="loginError" class="hidden mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm text-center"></div>
-            
+
             <div class="mt-6 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
                 <p class="font-medium mb-2">Demo Credentials:</p>
                 <p><strong>Admin:</strong> admin / admin123</p>
@@ -109,10 +188,12 @@
     <div id="mainApp" class="hidden">
         <div class="flex min-h-screen">
             <!-- Mobile Overlay -->
-            <div id="mobileOverlay" class="mobile-overlay fixed inset-0 hidden z-40 md:hidden" onclick="toggleMobileMenu()"></div>
-            
+            <div id="mobileOverlay" class="mobile-overlay fixed inset-0 hidden z-40 md:hidden"
+                onclick="toggleMobileMenu()"></div>
+
             <!-- Mobile Header -->
-            <div class="fixed top-0 left-0 right-0 bg-gray-900 text-white p-4 flex items-center justify-between md:hidden z-30">
+            <div
+                class="fixed top-0 left-0 right-0 bg-gray-900 text-white p-4 flex items-center justify-between md:hidden z-30">
                 <h1 class="text-xl font-bold flex items-center gap-2">
                     <i class="fas fa-graduation-cap text-indigo-400"></i>
                     <span id="mobileTitle">FeeManager</span>
@@ -128,7 +209,8 @@
             </div>
 
             <!-- Admin Sidebar -->
-            <aside id="adminSidebar" class="sidebar w-64 bg-gray-900 text-white fixed h-full overflow-y-auto flex flex-col">
+            <aside id="adminSidebar"
+                class="sidebar w-64 bg-gray-900 text-white fixed h-full overflow-y-auto flex flex-col">
                 <div class="p-6 border-b border-gray-700">
                     <h1 class="text-2xl font-bold flex items-center gap-2">
                         <i class="fas fa-graduation-cap text-indigo-400"></i>
@@ -137,37 +219,47 @@
                     <p class="text-xs text-gray-400 mt-1 logo-text">Admin Panel</p>
                 </div>
                 <nav class="p-4 space-y-2 flex-1">
-                    <a href="#" onclick="showSection('dashboard')" class="sidebar-link active flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                    <a href="#" onclick="showSection('dashboard')"
+                        class="sidebar-link active flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
                         <i class="fas fa-chart-pie"></i> <span class="sidebar-text">Dashboard</span>
                     </a>
-                    <a href="#" onclick="showSection('students')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                    <a href="#" onclick="showSection('students')"
+                        class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
                         <i class="fas fa-users"></i> <span class="sidebar-text">Students</span>
                     </a>
-                    <a href="#" onclick="showSection('batches')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                    <a href="#" onclick="showSection('batches')"
+                        class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
                         <i class="fas fa-layer-group"></i> <span class="sidebar-text">Batches</span>
                     </a>
-                    <a href="#" onclick="showSection('courses')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                    <a href="#" onclick="showSection('courses')"
+                        class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
                         <i class="fas fa-book"></i> <span class="sidebar-text">Courses</span>
                     </a>
-                    <a href="#" onclick="showSection('fees')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                    <a href="#" onclick="showSection('fees')"
+                        class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
                         <i class="fas fa-indian-rupee-sign"></i> <span class="sidebar-text">Fee Management</span>
                     </a>
-                    <a href="#" onclick="showSection('payments')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                    <a href="#" onclick="showSection('payments')"
+                        class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
                         <i class="fas fa-receipt"></i> <span class="sidebar-text">Payment History</span>
                     </a>
-                    <a href="#" onclick="showSection('analytics')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                    <a href="#" onclick="showSection('analytics')"
+                        class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
                         <i class="fas fa-chart-bar"></i> <span class="sidebar-text">Analytics</span>
                     </a>
-                    <a href="#" onclick="showSection('settings')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                    <a href="#" onclick="showSection('settings')"
+                        class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
                         <i class="fas fa-cog"></i> <span class="sidebar-text">Settings</span>
                     </a>
                 </nav>
                 <div class="p-4 border-t border-gray-700">
-                    <button onclick="logout()" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 rounded-lg hover:bg-red-700 transition mb-2">
+                    <button onclick="logout()"
+                        class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 rounded-lg hover:bg-red-700 transition mb-2">
                         <i class="fas fa-sign-out-alt"></i>
                         <span class="sidebar-text">Logout</span>
                     </button>
-                    <button onclick="toggleSidebar()" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition hidden md:flex">
+                    <button onclick="toggleSidebar()"
+                        class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition hidden md:flex">
                         <i id="collapseIcon" class="fas fa-chevron-left"></i>
                         <span class="sidebar-text">Collapse</span>
                     </button>
@@ -175,7 +267,8 @@
             </aside>
 
             <!-- Student Sidebar -->
-            <aside id="studentSidebar" class="sidebar w-64 bg-gray-900 text-white fixed h-full overflow-y-auto flex flex-col hidden">
+            <aside id="studentSidebar"
+                class="sidebar w-64 bg-gray-900 text-white fixed h-full overflow-y-auto flex flex-col hidden">
                 <div class="p-6 border-b border-gray-700">
                     <h1 class="text-2xl font-bold flex items-center gap-2">
                         <i class="fas fa-graduation-cap text-indigo-400"></i>
@@ -184,21 +277,26 @@
                     <p class="text-xs text-gray-400 mt-1 logo-text" id="studentWelcome">Welcome, Student</p>
                 </div>
                 <nav class="p-4 space-y-2 flex-1">
-                    <a href="#" onclick="showStudentSection('studentDashboard')" class="sidebar-link active flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                    <a href="#" onclick="showStudentSection('studentDashboard')"
+                        class="sidebar-link active flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
                         <i class="fas fa-home"></i> <span class="sidebar-text">Dashboard</span>
                     </a>
-                    <a href="#" onclick="showStudentSection('studentFees')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                    <a href="#" onclick="showStudentSection('studentFees')"
+                        class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
                         <i class="fas fa-indian-rupee-sign"></i> <span class="sidebar-text">My Fees</span>
                     </a>
-                    <a href="#" onclick="showStudentSection('studentPayments')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                    <a href="#" onclick="showStudentSection('studentPayments')"
+                        class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
                         <i class="fas fa-receipt"></i> <span class="sidebar-text">Payment History</span>
                     </a>
-                    <a href="#" onclick="showStudentSection('studentPayNow')" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
+                    <a href="#" onclick="showStudentSection('studentPayNow')"
+                        class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition">
                         <i class="fas fa-credit-card"></i> <span class="sidebar-text">Pay Now</span>
                     </a>
                 </nav>
                 <div class="p-4 border-t border-gray-700">
-                    <button onclick="logout()" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 rounded-lg hover:bg-red-700 transition">
+                    <button onclick="logout()"
+                        class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 rounded-lg hover:bg-red-700 transition">
                         <i class="fas fa-sign-out-alt"></i>
                         <span class="sidebar-text">Logout</span>
                     </button>
@@ -207,13 +305,13 @@
 
             <!-- Main Content -->
             <main id="mainContent" class="main-content flex-1 ml-0 md:ml-64 p-4 md:p-8 mt-16 md:mt-0">
-                
+
                 <!-- ============ ADMIN SECTIONS ============ -->
-                
+
                 <!-- Dashboard Section -->
                 <section id="dashboard" class="section">
                     <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Dashboard Overview</h2>
-                    
+
                     <!-- Stats Cards -->
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
                         <div class="card-gradient rounded-xl p-4 md:p-6 text-white shadow-lg">
@@ -286,15 +384,17 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                         <h2 class="text-2xl md:text-3xl font-bold text-gray-800">Students Management</h2>
                         <div class="flex gap-3 flex-wrap">
-                            <button onclick="exportStudentsToExcel()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2 text-sm md:text-base">
+                            <button onclick="exportStudentsToExcel()"
+                                class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2 text-sm md:text-base">
                                 <i class="fas fa-file-excel"></i> <span class="hidden sm:inline">Export</span>
                             </button>
-                            <button onclick="openModal('bulkStudentModal')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2 text-sm md:text-base">
+                            <button onclick="openModal('bulkStudentModal')"
+                                class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2 text-sm md:text-base">
                                 <i class="fas fa-users-plus"></i> <span class="hidden sm:inline">Add Students</span>
                             </button>
                         </div>
                     </div>
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <div class="bg-white rounded-xl shadow p-4 border-l-4 border-indigo-500">
                             <p class="text-sm text-gray-500">Total Students</p>
@@ -313,7 +413,8 @@
                     <!-- Search & Filter -->
                     <div class="bg-white rounded-xl shadow p-4 mb-6">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <input type="text" id="searchStudent" placeholder="Search by name or phone..." onkeyup="filterStudents()" class="px-4 py-2 border rounded-lg">
+                            <input type="text" id="searchStudent" placeholder="Search by name or phone..."
+                                onkeyup="filterStudents()" class="px-4 py-2 border rounded-lg">
                             <select id="filterBatch" onchange="filterStudents()" class="px-4 py-2 border rounded-lg">
                                 <option value="">All Batches</option>
                             </select>
@@ -330,11 +431,12 @@
                 <section id="batches" class="section hidden">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                         <h2 class="text-2xl md:text-3xl font-bold text-gray-800">Batch Management</h2>
-                        <button onclick="openModal('batchModal')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2">
+                        <button onclick="openModal('batchModal')"
+                            class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2">
                             <i class="fas fa-plus"></i> Add Batch
                         </button>
                     </div>
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="batchesGrid"></div>
                 </section>
 
@@ -343,10 +445,12 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                         <h2 class="text-2xl md:text-3xl font-bold text-gray-800">Courses Management</h2>
                         <div class="flex gap-3">
-                            <button onclick="exportCoursesToExcel()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2">
+                            <button onclick="exportCoursesToExcel()"
+                                class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2">
                                 <i class="fas fa-file-excel"></i> <span class="hidden sm:inline">Export</span>
                             </button>
-                            <button onclick="openModal('courseModal')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2">
+                            <button onclick="openModal('courseModal')"
+                                class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2">
                                 <i class="fas fa-plus"></i> Add Course
                             </button>
                         </div>
@@ -359,15 +463,17 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                         <h2 class="text-2xl md:text-3xl font-bold text-gray-800">Fee Management</h2>
                         <div class="flex gap-3">
-                            <button onclick="exportFeesToExcel()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2">
+                            <button onclick="exportFeesToExcel()"
+                                class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2">
                                 <i class="fas fa-file-excel"></i> <span class="hidden sm:inline">Export</span>
                             </button>
-                            <button onclick="openModal('paymentModal')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2">
+                            <button onclick="openModal('paymentModal')"
+                                class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2">
                                 <i class="fas fa-plus"></i> Record Payment
                             </button>
                         </div>
                     </div>
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <div class="bg-white rounded-xl shadow p-4 border-l-4 border-blue-500">
                             <p class="text-sm text-gray-500">Total Expected</p>
@@ -406,31 +512,37 @@
                 <section id="payments" class="section hidden">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                         <h2 class="text-2xl md:text-3xl font-bold text-gray-800">Payment History</h2>
-                        <button onclick="exportFilteredPaymentsToExcel()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2">
+                        <button onclick="exportFilteredPaymentsToExcel()"
+                            class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2">
                             <i class="fas fa-file-excel"></i> Export Filtered
                         </button>
                     </div>
-                    
+
                     <!-- Filters -->
                     <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-6">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-gray-800"><i class="fas fa-filter mr-2 text-indigo-600"></i>Filters</h3>
-                            <button onclick="clearFilters()" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                            <h3 class="text-lg font-semibold text-gray-800"><i
+                                    class="fas fa-filter mr-2 text-indigo-600"></i>Filters</h3>
+                            <button onclick="clearFilters()"
+                                class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
                                 <i class="fas fa-times-circle mr-1"></i>Clear All
                             </button>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Date From</label>
-                                <input type="date" id="filterDateFrom" onchange="applyFilters()" class="w-full px-3 py-2 border rounded-lg">
+                                <input type="date" id="filterDateFrom" onchange="applyFilters()"
+                                    class="w-full px-3 py-2 border rounded-lg">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Date To</label>
-                                <input type="date" id="filterDateTo" onchange="applyFilters()" class="w-full px-3 py-2 border rounded-lg">
+                                <input type="date" id="filterDateTo" onchange="applyFilters()"
+                                    class="w-full px-3 py-2 border rounded-lg">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
-                                <select id="filterMethod" onchange="applyFilters()" class="w-full px-3 py-2 border rounded-lg">
+                                <select id="filterMethod" onchange="applyFilters()"
+                                    class="w-full px-3 py-2 border rounded-lg">
                                     <option value="">All Methods</option>
                                     <option value="Cash">Cash</option>
                                     <option value="UPI">UPI</option>
@@ -440,20 +552,30 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Student</label>
-                                <select id="filterStudent" onchange="applyFilters()" class="w-full px-3 py-2 border rounded-lg">
+                                <select id="filterStudent" onchange="applyFilters()"
+                                    class="w-full px-3 py-2 border rounded-lg">
                                     <option value="">All Students</option>
                                 </select>
                             </div>
                         </div>
                         <div class="flex flex-wrap gap-2 mt-4">
-                            <button onclick="setQuickFilter('today')" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-indigo-100 hover:text-indigo-700 transition">Today</button>
-                            <button onclick="setQuickFilter('week')" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-indigo-100 hover:text-indigo-700 transition">This Week</button>
-                            <button onclick="setQuickFilter('month')" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-indigo-100 hover:text-indigo-700 transition">This Month</button>
-                            <button onclick="setQuickFilter('year')" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-indigo-100 hover:text-indigo-700 transition">This Year</button>
-                            <button onclick="setQuickFilter('all')" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-indigo-100 hover:text-indigo-700 transition">All Time</button>
+                            <button onclick="setQuickFilter('today')"
+                                class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-indigo-100 hover:text-indigo-700 transition">Today</button>
+                            <button onclick="setQuickFilter('week')"
+                                class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-indigo-100 hover:text-indigo-700 transition">This
+                                Week</button>
+                            <button onclick="setQuickFilter('month')"
+                                class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-indigo-100 hover:text-indigo-700 transition">This
+                                Month</button>
+                            <button onclick="setQuickFilter('year')"
+                                class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-indigo-100 hover:text-indigo-700 transition">This
+                                Year</button>
+                            <button onclick="setQuickFilter('all')"
+                                class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-indigo-100 hover:text-indigo-700 transition">All
+                                Time</button>
                         </div>
                     </div>
-                    
+
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                         <div class="bg-white rounded-xl shadow p-4 border-l-4 border-indigo-500">
                             <p class="text-sm text-gray-500">Transactions</p>
@@ -492,7 +614,7 @@
                 <!-- Analytics Section -->
                 <section id="analytics" class="section hidden">
                     <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Analytics & Reports</h2>
-                    
+
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                         <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
                             <h3 class="text-lg font-semibold mb-4">Course-wise Fee Collection</h3>
@@ -503,7 +625,7 @@
                             <div class="chart-container"><canvas id="paymentModeChart"></canvas></div>
                         </div>
                     </div>
-                    
+
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
                             <h3 class="text-lg font-semibold mb-4">Month-wise Admissions</h3>
@@ -519,27 +641,60 @@
                 <!-- Settings Section -->
                 <section id="settings" class="section hidden">
                     <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Settings</h2>
-                    
+
                     <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-                        <h3 class="text-lg font-semibold mb-4"><i class="fas fa-cloud text-indigo-600 mr-2"></i>Google Sheets Sync</h3>
+                        <h3 class="text-lg font-semibold mb-4"><i class="fas fa-cloud text-indigo-600 mr-2"></i>Google
+                            Sheets Sync</h3>
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Google Apps Script Web App URL</label>
-                                <input type="text" id="googleSheetUrl" placeholder="https://script.google.com/macros/s/..." class="w-full px-4 py-2 border rounded-lg">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Google Apps Script Web App
+                                    URL</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="googleSheetUrl"
+                                        placeholder="https://script.google.com/macros/s/.../exec"
+                                        class="flex-1 px-4 py-2 border rounded-lg">
+                                    <button onclick="saveGoogleSheetUrl()"
+                                        class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+                                        <i class="fas fa-save mr-2"></i>Save URL
+                                    </button>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">See GOOGLE_SHEETS_SETUP.md for setup instructions
+                                </p>
                             </div>
-                            <button onclick="syncToGoogleSheets()" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
-                                <i class="fas fa-sync mr-2"></i>Sync Now
-                            </button>
+
+                            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                <input type="checkbox" id="autoSyncEnabled" onchange="toggleAutoSync()" class="w-4 h-4">
+                                <label for="autoSyncEnabled" class="text-sm font-medium text-gray-700">Enable Auto-Sync
+                                    (sync on every change)</label>
+                            </div>
+
+                            <div id="lastSyncTime" class="text-sm text-gray-600">
+                                <i class="fas fa-clock mr-2"></i>Last synced: Never
+                            </div>
+
+                            <div class="flex gap-3 flex-wrap">
+                                <button onclick="syncToGoogleSheets()"
+                                    class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                                    <i class="fas fa-cloud-upload-alt mr-2"></i>Push to Sheets
+                                </button>
+                                <button onclick="loadFromGoogleSheets()"
+                                    class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                                    <i class="fas fa-cloud-download-alt mr-2"></i>Load from Sheets
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    
+
                     <div class="bg-white rounded-xl shadow-lg p-6">
-                        <h3 class="text-lg font-semibold mb-4"><i class="fas fa-database text-red-600 mr-2"></i>Data Management</h3>
+                        <h3 class="text-lg font-semibold mb-4"><i class="fas fa-database text-red-600 mr-2"></i>Data
+                            Management</h3>
                         <div class="flex gap-4 flex-wrap">
-                            <button onclick="exportAllData()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                            <button onclick="exportAllData()"
+                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
                                 <i class="fas fa-download mr-2"></i>Export All Data
                             </button>
-                            <button onclick="clearAllData()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                            <button onclick="clearAllData()"
+                                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
                                 <i class="fas fa-trash mr-2"></i>Clear All Data
                             </button>
                         </div>
@@ -547,11 +702,12 @@
                 </section>
 
                 <!-- ============ STUDENT SECTIONS ============ -->
-                
+
                 <!-- Student Dashboard -->
                 <section id="studentDashboard" class="section hidden">
-                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Welcome, <span id="studentNameDisplay"></span></h2>
-                    
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Welcome, <span
+                            id="studentNameDisplay"></span></h2>
+
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <div class="card-gradient rounded-xl p-6 text-white shadow-lg">
                             <p class="text-sm opacity-80">Total Fee</p>
@@ -566,7 +722,7 @@
                             <p id="myPendingAmount" class="text-3xl font-bold mt-1">₹0</p>
                         </div>
                     </div>
-                    
+
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div class="bg-white rounded-xl shadow-lg p-6">
                             <h3 class="text-lg font-semibold mb-4">Course Details</h3>
@@ -606,35 +762,41 @@
                 <!-- Student Pay Now -->
                 <section id="studentPayNow" class="section hidden">
                     <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">Pay Fee Online</h2>
-                    
+
                     <div class="max-w-lg mx-auto">
                         <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
                             <div class="text-center mb-6">
                                 <p class="text-gray-500">Pending Amount</p>
                                 <p id="payNowPending" class="text-4xl font-bold text-red-600">₹0</p>
                             </div>
-                            
+
                             <div class="space-y-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount to Pay (₹)</label>
-                                    <input type="number" id="onlinePaymentAmount" class="w-full px-4 py-3 border rounded-lg text-lg">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Amount to Pay
+                                        (₹)</label>
+                                    <input type="number" id="onlinePaymentAmount"
+                                        class="w-full px-4 py-3 border rounded-lg text-lg">
                                 </div>
-                                
+
                                 <div class="grid grid-cols-2 gap-4">
-                                    <button onclick="payWithUPI()" class="py-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition flex items-center justify-center gap-2">
+                                    <button onclick="payWithUPI()"
+                                        class="py-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition flex items-center justify-center gap-2">
                                         <i class="fas fa-mobile-alt text-xl"></i>
                                         <span>Pay with UPI</span>
                                     </button>
-                                    <button onclick="payWithRazorpay()" class="py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                                    <button onclick="payWithRazorpay()"
+                                        class="py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center gap-2">
                                         <i class="fas fa-credit-card text-xl"></i>
                                         <span>Razorpay</span>
                                     </button>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                            <p class="text-sm text-yellow-800"><i class="fas fa-info-circle mr-2"></i>Online payments will be verified and updated within 24 hours. For instant confirmation, please contact admin.</p>
+                            <p class="text-sm text-yellow-800"><i class="fas fa-info-circle mr-2"></i>Online payments
+                                will be verified and updated within 24 hours. For instant confirmation, please contact
+                                admin.</p>
                         </div>
                     </div>
                 </section>
@@ -644,9 +806,10 @@
     </div>
 
     <!-- ============ MODALS ============ -->
-    
+
     <!-- Bulk Student Modal -->
-    <div id="bulkStudentModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+    <div id="bulkStudentModal"
+        class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-xl p-6 md:p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-2xl font-bold">Add Multiple Students</h3>
@@ -654,7 +817,7 @@
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-indigo-50 rounded-lg">
                 <div>
                     <label class="block text-sm font-medium text-indigo-700 mb-2">Select Course</label>
@@ -669,16 +832,19 @@
                     </select>
                 </div>
             </div>
-            
+
             <div id="studentEntriesContainer" class="space-y-4"></div>
-            
-            <button onclick="addStudentRow()" class="mt-4 w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-indigo-500 hover:text-indigo-500 transition flex items-center justify-center gap-2">
+
+            <button onclick="addStudentRow()"
+                class="mt-4 w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-indigo-500 hover:text-indigo-500 transition flex items-center justify-center gap-2">
                 <i class="fas fa-plus"></i> Add Another Student
             </button>
-            
+
             <div class="flex gap-3 mt-6">
-                <button type="button" onclick="closeModal('bulkStudentModal')" class="flex-1 px-4 py-3 border rounded-lg hover:bg-gray-50 transition">Cancel</button>
-                <button onclick="saveAllStudents()" class="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium">
+                <button type="button" onclick="closeModal('bulkStudentModal')"
+                    class="flex-1 px-4 py-3 border rounded-lg hover:bg-gray-50 transition">Cancel</button>
+                <button onclick="saveAllStudents()"
+                    class="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium">
                     <i class="fas fa-save mr-2"></i>Save All Students
                 </button>
             </div>
@@ -686,7 +852,8 @@
     </div>
 
     <!-- Student Edit Modal -->
-    <div id="studentModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+    <div id="studentModal"
+        class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-xl p-6 md:p-8 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h3 class="text-2xl font-bold mb-6">Edit Student</h3>
             <form id="studentForm" onsubmit="saveStudent(event)">
@@ -714,15 +881,18 @@
                     </div>
                 </div>
                 <div class="flex gap-3 mt-6">
-                    <button type="button" onclick="closeModal('studentModal')" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition">Cancel</button>
-                    <button type="submit" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Save</button>
+                    <button type="button" onclick="closeModal('studentModal')"
+                        class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition">Cancel</button>
+                    <button type="submit"
+                        class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Save</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Course Modal -->
-    <div id="courseModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+    <div id="courseModal"
+        class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-xl p-6 md:p-8 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h3 class="text-2xl font-bold mb-6">Add/Edit Course</h3>
             <form id="courseForm" onsubmit="saveCourse(event)">
@@ -750,8 +920,10 @@
                     </div>
                 </div>
                 <div class="flex gap-3 mt-6">
-                    <button type="button" onclick="closeModal('courseModal')" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition">Cancel</button>
-                    <button type="submit" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Save</button>
+                    <button type="button" onclick="closeModal('courseModal')"
+                        class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition">Cancel</button>
+                    <button type="submit"
+                        class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Save</button>
                 </div>
             </form>
         </div>
@@ -766,7 +938,8 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Batch Name</label>
-                        <input type="text" id="batchName" required placeholder="e.g., January 2024 Batch" class="w-full px-4 py-2 border rounded-lg">
+                        <input type="text" id="batchName" required placeholder="e.g., January 2024 Batch"
+                            class="w-full px-4 py-2 border rounded-lg">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
@@ -778,29 +951,35 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Timing</label>
-                        <input type="text" id="batchTiming" placeholder="e.g., 10:00 AM - 12:00 PM" class="w-full px-4 py-2 border rounded-lg">
+                        <input type="text" id="batchTiming" placeholder="e.g., 10:00 AM - 12:00 PM"
+                            class="w-full px-4 py-2 border rounded-lg">
                     </div>
                 </div>
                 <div class="flex gap-3 mt-6">
-                    <button type="button" onclick="closeModal('batchModal')" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition">Cancel</button>
-                    <button type="submit" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Save</button>
+                    <button type="button" onclick="closeModal('batchModal')"
+                        class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition">Cancel</button>
+                    <button type="submit"
+                        class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Save</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Payment Modal -->
-    <div id="paymentModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+    <div id="paymentModal"
+        class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-xl p-6 md:p-8 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h3 class="text-2xl font-bold mb-6">Record Payment</h3>
             <form id="paymentForm" onsubmit="savePayment(event)">
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Student</label>
-                        <select id="paymentStudent" required onchange="showPendingAmount()" class="w-full px-4 py-2 border rounded-lg"></select>
+                        <select id="paymentStudent" required onchange="showPendingAmount()"
+                            class="w-full px-4 py-2 border rounded-lg"></select>
                     </div>
                     <div id="pendingInfo" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                        <p class="text-sm text-yellow-800">Pending: <span id="pendingAmount" class="font-bold">₹0</span></p>
+                        <p class="text-sm text-yellow-800">Pending: <span id="pendingAmount" class="font-bold">₹0</span>
+                        </p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Amount (₹)</label>
@@ -821,15 +1000,18 @@
                     </div>
                 </div>
                 <div class="flex gap-3 mt-6">
-                    <button type="button" onclick="closeModal('paymentModal')" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition">Cancel</button>
-                    <button type="submit" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Record</button>
+                    <button type="button" onclick="closeModal('paymentModal')"
+                        class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 transition">Cancel</button>
+                    <button type="submit"
+                        class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Record</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Student Details Modal -->
-    <div id="studentDetailsModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+    <div id="studentDetailsModal"
+        class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-xl p-6 md:p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-2xl font-bold">Student Details</h3>
@@ -884,11 +1066,11 @@
 
         function setLoginType(type) {
             loginType = type;
-            document.getElementById('adminTab').className = type === 'admin' ? 
-                'flex-1 py-2 rounded-lg text-sm font-medium transition bg-indigo-600 text-white' : 
+            document.getElementById('adminTab').className = type === 'admin' ?
+                'flex-1 py-2 rounded-lg text-sm font-medium transition bg-indigo-600 text-white' :
                 'flex-1 py-2 rounded-lg text-sm font-medium transition text-gray-600';
-            document.getElementById('studentTab').className = type === 'student' ? 
-                'flex-1 py-2 rounded-lg text-sm font-medium transition bg-indigo-600 text-white' : 
+            document.getElementById('studentTab').className = type === 'student' ?
+                'flex-1 py-2 rounded-lg text-sm font-medium transition bg-indigo-600 text-white' :
                 'flex-1 py-2 rounded-lg text-sm font-medium transition text-gray-600';
             document.getElementById('loginIdLabel').textContent = type === 'admin' ? 'Admin ID' : 'Student ID';
             document.getElementById('loginId').placeholder = type === 'admin' ? 'Enter admin ID' : 'Enter your Student ID';
@@ -953,7 +1135,25 @@
         // ============ INITIALIZATION ============
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('paymentDate').valueAsDate = new Date();
-            
+
+            // Load Google Sheets settings
+            const defaultUrl = 'https://script.google.com/macros/s/AKfycby0nMtfy6jSToNr7hxQ5gpj6LkjGuIxKCWpFlNZu0TtNqoT_0SN4KXyCZdJ5J16BzOi/exec';
+            const savedUrl = localStorage.getItem('googleSheetUrl') || defaultUrl;
+            if (savedUrl) {
+                document.getElementById('googleSheetUrl').value = savedUrl;
+                // Save default URL if not already saved
+                if (!localStorage.getItem('googleSheetUrl')) {
+                    localStorage.setItem('googleSheetUrl', defaultUrl);
+                }
+            }
+
+            const autoSync = localStorage.getItem('autoSyncEnabled') === 'true';
+            if (document.getElementById('autoSyncEnabled')) {
+                document.getElementById('autoSyncEnabled').checked = autoSync;
+            }
+
+            updateLastSyncDisplay();
+
             if (currentUser) {
                 showMainApp();
             }
@@ -999,7 +1199,7 @@
 
             // Recent payments
             const recentPay = studentPayments.slice(-5).reverse();
-            document.getElementById('myRecentPayments').innerHTML = recentPay.length > 0 ? 
+            document.getElementById('myRecentPayments').innerHTML = recentPay.length > 0 ?
                 recentPay.map(p => `
                     <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                         <div>
@@ -1069,7 +1269,7 @@
             const mainContent = document.getElementById('mainContent');
             const collapseIcon = document.getElementById('collapseIcon');
             sidebarCollapsed = !sidebarCollapsed;
-            
+
             if (sidebarCollapsed) {
                 sidebar.classList.add('collapsed');
                 mainContent.classList.add('expanded');
@@ -1093,7 +1293,7 @@
             const modal = document.getElementById(modalId);
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            
+
             if (modalId === 'bulkStudentModal') {
                 populateCourseDropdown('bulkCourse');
                 populateBatchDropdown('bulkBatch');
@@ -1116,13 +1316,13 @@
 
         function populateCourseDropdown(selectId) {
             const select = document.getElementById(selectId);
-            select.innerHTML = '<option value="">Select Course</option>' + 
+            select.innerHTML = '<option value="">Select Course</option>' +
                 courses.map(c => `<option value="${c.id}">${c.name} - ₹${getTotalCourseFee(c).toLocaleString('en-IN')}</option>`).join('');
         }
 
         function populateBatchDropdown(selectId) {
             const select = document.getElementById(selectId);
-            select.innerHTML = '<option value="">Select Batch</option>' + 
+            select.innerHTML = '<option value="">Select Batch</option>' +
                 batches.map(b => {
                     const course = courses.find(c => c.id === b.courseId);
                     return `<option value="${b.id}">${b.name} (${course?.name || 'N/A'})</option>`;
@@ -1131,7 +1331,7 @@
 
         function populateStudentDropdown() {
             const select = document.getElementById('paymentStudent');
-            select.innerHTML = '<option value="">Select Student</option>' + 
+            select.innerHTML = '<option value="">Select Student</option>' +
                 students.map(s => {
                     const course = courses.find(c => c.id === s.courseId);
                     return `<option value="${s.id}">${s.name} (${course?.name || 'N/A'})</option>`;
@@ -1218,6 +1418,7 @@
                 renderBatches();
                 updateDashboard();
                 updateAllCharts();
+                triggerAutoSync(); // Auto-sync to Google Sheets
                 alert(`${addedCount} student(s) added successfully!`);
             } else {
                 alert('Please fill at least one student with name and phone!');
@@ -1229,7 +1430,7 @@
             e.preventDefault();
             const id = parseInt(document.getElementById('studentId').value);
             const existingIndex = students.findIndex(s => s.id === id);
-            
+
             if (existingIndex >= 0) {
                 students[existingIndex] = {
                     ...students[existingIndex],
@@ -1248,6 +1449,7 @@
             renderBatches();
             updateDashboard();
             updateAllCharts();
+            triggerAutoSync(); // Auto-sync to Google Sheets
         }
 
         function editStudent(id) {
@@ -1283,17 +1485,17 @@
         function viewStudentDetails(id) {
             const student = students.find(s => s.id === id);
             if (!student) return;
-            
+
             const course = courses.find(c => c.id === student.courseId);
             const batch = batches.find(b => b.id === student.batchId);
             const totalFee = getTotalCourseFee(course);
             const paidAmount = student.paidAmount || 0;
             const pending = Math.max(0, totalFee - paidAmount);
             const studentPayments = payments.filter(p => p.studentId === id).sort((a, b) => new Date(b.date) - new Date(a.date));
-            
+
             const status = pending <= 0 ? 'Paid' : pending < totalFee ? 'Partial' : 'Unpaid';
             const statusClass = status === 'Paid' ? 'bg-green-100 text-green-800' : status === 'Partial' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800';
-            
+
             document.getElementById('studentDetailsContent').innerHTML = `
                 <div class="space-y-6">
                     <div class="flex items-center gap-4">
@@ -1388,18 +1590,18 @@
 
         function renderStudents() {
             // Populate filter dropdowns
-            document.getElementById('filterBatch').innerHTML = '<option value="">All Batches</option>' + 
+            document.getElementById('filterBatch').innerHTML = '<option value="">All Batches</option>' +
                 batches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
-            document.getElementById('filterCourse').innerHTML = '<option value="">All Courses</option>' + 
+            document.getElementById('filterCourse').innerHTML = '<option value="">All Courses</option>' +
                 courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
 
             const totalCollected = students.reduce((sum, s) => sum + (s.paidAmount || 0), 0);
             const totalExpected = students.reduce((sum, s) => sum + getTotalCourseFee(courses.find(c => c.id === s.courseId)), 0);
-            
+
             document.getElementById('studentsCount').textContent = students.length;
             document.getElementById('studentsTotalCollected').textContent = '₹' + totalCollected.toLocaleString('en-IN');
             document.getElementById('studentsTotalPending').textContent = '₹' + Math.max(0, totalExpected - totalCollected).toLocaleString('en-IN');
-            
+
             renderStudentsGrid(students);
         }
 
@@ -1409,7 +1611,7 @@
                 grid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-8">No students found</p>';
                 return;
             }
-            
+
             grid.innerHTML = studentsList.map(student => {
                 const course = courses.find(c => c.id === student.courseId);
                 const batch = batches.find(b => b.id === student.batchId);
@@ -1419,7 +1621,7 @@
                 const status = pending <= 0 ? 'Paid' : pending < totalFee ? 'Partial' : 'Unpaid';
                 const statusClass = status === 'Paid' ? 'bg-green-100 text-green-800' : status === 'Partial' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800';
                 const progress = totalFee > 0 ? Math.min(100, (paidAmount / totalFee) * 100) : 0;
-                
+
                 return `
                     <div class="bg-white rounded-xl shadow-lg p-5 hover:shadow-xl transition">
                         <div class="flex justify-between items-start mb-4">
@@ -1481,6 +1683,7 @@
             closeModal('batchModal');
             renderBatches();
             updateDashboard();
+            triggerAutoSync(); // Auto-sync to Google Sheets
         }
 
         function editBatch(id) {
@@ -1501,6 +1704,7 @@
                 localStorage.setItem('batches', JSON.stringify(batches));
                 renderBatches();
                 updateDashboard();
+                triggerAutoSync(); // Auto-sync to Google Sheets
             }
         }
 
@@ -1570,6 +1774,7 @@
             renderFees();
             updateDashboard();
             updateAllCharts();
+            triggerAutoSync(); // Auto-sync to Google Sheets
         }
 
         function editCourse(id) {
@@ -1592,6 +1797,7 @@
                 renderCourses();
                 updateDashboard();
                 updateAllCharts();
+                triggerAutoSync(); // Auto-sync to Google Sheets
             }
         }
 
@@ -1631,7 +1837,7 @@
             e.preventDefault();
             const studentId = parseInt(document.getElementById('paymentStudent').value);
             const amount = parseFloat(document.getElementById('paymentAmount').value);
-            
+
             payments.push({
                 id: Date.now(),
                 studentId,
@@ -1651,31 +1857,32 @@
             document.getElementById('paymentForm').reset();
             document.getElementById('paymentDate').valueAsDate = new Date();
             document.getElementById('pendingInfo').classList.add('hidden');
-            
+
             renderPayments();
             renderFees();
             renderStudents();
             renderBatches();
             updateDashboard();
             updateAllCharts();
+            triggerAutoSync(); // Auto-sync to Google Sheets
         }
 
         // ============ FEES TABLE ============
         function renderFees() {
             const tbody = document.getElementById('feesTable');
             let totalExpected = 0, totalCollected = 0;
-            
+
             students.forEach(s => {
                 const course = courses.find(c => c.id === s.courseId);
                 totalExpected += getTotalCourseFee(course);
                 totalCollected += s.paidAmount || 0;
             });
-            
+
             document.getElementById('feeTotalExpected').textContent = '₹' + totalExpected.toLocaleString('en-IN');
             document.getElementById('feeTotalCollected').textContent = '₹' + totalCollected.toLocaleString('en-IN');
             document.getElementById('feeTotalPending').textContent = '₹' + Math.max(0, totalExpected - totalCollected).toLocaleString('en-IN');
-            
-            tbody.innerHTML = students.length === 0 ? 
+
+            tbody.innerHTML = students.length === 0 ?
                 '<tr><td colspan="8" class="px-6 py-8 text-center text-gray-500">No students enrolled</td></tr>' :
                 students.map(student => {
                     const course = courses.find(c => c.id === student.courseId);
@@ -1685,7 +1892,7 @@
                     const pending = Math.max(0, totalFee - paidAmount);
                     const status = pending <= 0 ? 'Paid' : pending < totalFee ? 'Partial' : 'Unpaid';
                     const statusClass = status === 'Paid' ? 'bg-green-100 text-green-800' : status === 'Partial' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800';
-                    
+
                     return `
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 py-4 font-medium">${student.name}<br><span class="text-xs text-gray-400">ID: ${student.id}</span></td>
@@ -1707,7 +1914,7 @@
 
         // ============ PAYMENTS & FILTERS ============
         function renderPayments() {
-            document.getElementById('filterStudent').innerHTML = '<option value="">All Students</option>' + 
+            document.getElementById('filterStudent').innerHTML = '<option value="">All Students</option>' +
                 students.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
             applyFilters();
         }
@@ -1734,13 +1941,13 @@
             const count = filteredPayments.length;
             const avg = count > 0 ? Math.round(total / count) : 0;
             const max = count > 0 ? Math.max(...filteredPayments.map(p => p.amount)) : 0;
-            
+
             document.getElementById('filteredPaymentCount').textContent = count;
             document.getElementById('filteredPaymentTotal').textContent = '₹' + total.toLocaleString('en-IN');
             document.getElementById('filteredPaymentAvg').textContent = '₹' + avg.toLocaleString('en-IN');
             document.getElementById('filteredPaymentMax').textContent = '₹' + max.toLocaleString('en-IN');
-            
-            document.getElementById('paymentsTable').innerHTML = filteredPayments.length === 0 ? 
+
+            document.getElementById('paymentsTable').innerHTML = filteredPayments.length === 0 ?
                 '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">No payments found</td></tr>' :
                 [...filteredPayments].sort((a, b) => new Date(b.date) - new Date(a.date)).map(p => {
                     const student = students.find(s => s.id === p.studentId);
@@ -1767,15 +1974,15 @@
         function setQuickFilter(period) {
             const today = new Date();
             let fromDate = new Date();
-            
-            switch(period) {
+
+            switch (period) {
                 case 'today': fromDate = today; break;
                 case 'week': fromDate.setDate(today.getDate() - 7); break;
                 case 'month': fromDate = new Date(today.getFullYear(), today.getMonth(), 1); break;
                 case 'year': fromDate = new Date(today.getFullYear(), 0, 1); break;
                 case 'all': clearFilters(); return;
             }
-            
+
             document.getElementById('filterDateFrom').value = fromDate.toISOString().split('T')[0];
             document.getElementById('filterDateTo').value = today.toISOString().split('T')[0];
             applyFilters();
@@ -1785,16 +1992,16 @@
         function updateDashboard() {
             document.getElementById('totalStudents').textContent = students.length;
             document.getElementById('totalBatches').textContent = batches.length;
-            
+
             const totalCollected = payments.reduce((sum, p) => sum + p.amount, 0);
             document.getElementById('totalCollected').textContent = '₹' + totalCollected.toLocaleString('en-IN');
-            
+
             const totalExpected = students.reduce((sum, s) => sum + getTotalCourseFee(courses.find(c => c.id === s.courseId)), 0);
             document.getElementById('pendingFees').textContent = '₹' + Math.max(0, totalExpected - totalCollected).toLocaleString('en-IN');
 
             // Recent payments
             const recent = [...payments].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
-            document.getElementById('recentPayments').innerHTML = recent.length === 0 ? 
+            document.getElementById('recentPayments').innerHTML = recent.length === 0 ?
                 '<p class="text-gray-500 text-center py-4">No payments yet</p>' :
                 recent.map(p => {
                     const student = students.find(s => s.id === p.studentId);
@@ -2000,29 +2207,185 @@
         }
 
         // ============ GOOGLE SHEETS SYNC ============
-        async function syncToGoogleSheets() {
+        let autoSyncEnabled = localStorage.getItem('autoSyncEnabled') === 'true';
+        let syncTimeout = null;
+
+        function saveGoogleSheetUrl() {
             const url = document.getElementById('googleSheetUrl').value;
-            if (!url) { alert('Please enter Google Apps Script URL!'); return; }
-            
+            if (!url) { alert('Please enter a URL first!'); return; }
+            localStorage.setItem('googleSheetUrl', url);
+            alert('Google Sheets URL saved successfully!');
+        }
+
+        function toggleAutoSync() {
+            autoSyncEnabled = document.getElementById('autoSyncEnabled').checked;
+            localStorage.setItem('autoSyncEnabled', autoSyncEnabled);
+            if (autoSyncEnabled) {
+                alert('Auto-sync enabled! Data will sync automatically on changes.');
+            }
+        }
+
+        function triggerAutoSync() {
+            if (!autoSyncEnabled) return;
+            // Debounce: wait 2 seconds after last change before syncing
+            clearTimeout(syncTimeout);
+            syncTimeout = setTimeout(() => {
+                syncToGoogleSheets(true);
+            }, 2000);
+        }
+
+        async function syncToGoogleSheets(isAuto = false) {
+            let url = document.getElementById('googleSheetUrl').value;
+            if (!url) {
+                url = localStorage.getItem('googleSheetUrl');
+                if (!url) {
+                    if (!isAuto) alert('Please enter and save Google Apps Script URL first!');
+                    return;
+                }
+            }
+
+            // Prepare admin credentials
+            const adminCredentials = [{
+                id: 'admin',
+                password: 'admin123',
+                name: 'System Administrator',
+                email: 'admin@feemanager.com',
+                role: 'Super Admin',
+                lastLogin: new Date().toISOString(),
+                status: 'Active'
+            }];
+
+            // Prepare student credentials
+            const studentCredentials = students.map(s => {
+                const course = courses.find(c => c.id === s.courseId);
+                const batch = batches.find(b => b.id === s.batchId);
+                return {
+                    id: s.id,
+                    password: s.phone,
+                    name: s.name,
+                    email: s.email || '',
+                    course: course?.name || '',
+                    batch: batch?.name || '',
+                    status: 'Active'
+                };
+            });
+
             const data = {
                 students: students.map(s => {
                     const course = courses.find(c => c.id === s.courseId);
                     const batch = batches.find(b => b.id === s.batchId);
-                    return { id: s.id, name: s.name, email: s.email, phone: s.phone, course: course?.name, batch: batch?.name, totalFee: getTotalCourseFee(course), paidAmount: s.paidAmount || 0, pending: Math.max(0, getTotalCourseFee(course) - (s.paidAmount || 0)), enrollDate: new Date(s.enrollDate).toLocaleDateString('en-IN') };
+                    const totalFee = getTotalCourseFee(course);
+                    const paidAmount = s.paidAmount || 0;
+                    return {
+                        id: s.id,
+                        name: s.name,
+                        email: s.email || '',
+                        phone: s.phone,
+                        course: course?.name || '',
+                        batch: batch?.name || '',
+                        totalFee: totalFee,
+                        paidAmount: paidAmount,
+                        pending: Math.max(0, totalFee - paidAmount),
+                        enrollDate: s.enrollDate ? new Date(s.enrollDate).toLocaleDateString('en-IN') : ''
+                    };
                 }),
                 payments: payments.map(p => {
                     const student = students.find(s => s.id === p.studentId);
-                    return { id: p.id, date: new Date(p.date).toLocaleDateString('en-IN'), studentId: p.studentId, studentName: student?.name, amount: p.amount, method: p.method };
+                    return {
+                        id: p.id,
+                        date: new Date(p.date).toLocaleDateString('en-IN'),
+                        studentId: p.studentId,
+                        studentName: student?.name || '',
+                        amount: p.amount,
+                        method: p.method
+                    };
                 }),
-                courses: courses.map(c => ({ id: c.id, name: c.name, duration: c.duration, fee: c.fee, regFee: c.regFee, description: c.description })),
-                batches: batches.map(b => ({ id: b.id, name: b.name, courseId: b.courseId, startDate: b.startDate, timing: b.timing }))
+                courses: courses.map(c => ({
+                    id: c.id,
+                    name: c.name,
+                    duration: c.duration,
+                    fee: c.fee,
+                    regFee: c.regFee || 0,
+                    description: c.description || ''
+                })),
+                batches: batches.map(b => {
+                    const studentsCount = students.filter(s => s.batchId === b.id).length;
+                    return {
+                        id: b.id,
+                        name: b.name,
+                        courseId: b.courseId,
+                        startDate: b.startDate,
+                        timing: b.timing || '',
+                        studentsCount: studentsCount
+                    };
+                }),
+                adminCredentials: adminCredentials,
+                studentCredentials: studentCredentials
             };
-            
+
             try {
-                await fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-                alert('Data synced to Google Sheets!');
+                const response = await fetch(url, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const now = new Date().toLocaleString('en-IN');
+                localStorage.setItem('lastSyncTime', now);
+                updateLastSyncDisplay();
+
+                if (!isAuto) {
+                    alert('✅ Data synced to Google Sheets successfully!\n\nAll sheets have been updated with latest data.');
+                }
             } catch (error) {
-                alert('Error syncing: ' + error.message);
+                if (!isAuto) {
+                    alert('❌ Error syncing: ' + error.message + '\n\nPlease check your URL and try again.');
+                }
+                console.error('Sync error:', error);
+            }
+        }
+
+        async function loadFromGoogleSheets() {
+            let url = document.getElementById('googleSheetUrl').value;
+            if (!url) {
+                url = localStorage.getItem('googleSheetUrl');
+                if (!url) {
+                    alert('Please enter and save Google Apps Script URL first!');
+                    return;
+                }
+            }
+
+            try {
+                const response = await fetch(url, { method: 'GET' });
+                const data = await response.json();
+
+                if (data.error) {
+                    alert('Error loading data: ' + data.error);
+                    return;
+                }
+
+                // Note: This is a basic implementation
+                // You may want to add merge logic instead of overwriting
+                if (confirm('This will replace your local data with data from Google Sheets. Continue?')) {
+                    // Import logic would go here
+                    alert('Load from Sheets feature coming soon!\n\nCurrently, sync is one-way (App → Sheets).');
+                }
+            } catch (error) {
+                alert('Error loading from sheets: ' + error.message);
+                console.error('Load error:', error);
+            }
+        }
+
+        function updateLastSyncDisplay() {
+            const lastSync = localStorage.getItem('lastSyncTime');
+            const display = document.getElementById('lastSyncTime');
+            if (display) {
+                if (lastSync) {
+                    display.innerHTML = '<i class="fas fa-check-circle text-green-600 mr-2"></i>Last synced: ' + lastSync;
+                } else {
+                    display.innerHTML = '<i class="fas fa-clock mr-2"></i>Last synced: Never';
+                }
             }
         }
 
@@ -2041,4 +2404,5 @@
         }
     </script>
 </body>
+
 </html>
